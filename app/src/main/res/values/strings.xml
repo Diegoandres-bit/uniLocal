@@ -7,5 +7,6 @@
     <string name="ULogo">Login Logo </string>
     <string name="uniLocal">uniLocal</string>
     <string name="email_error">Ingrese un correo valido</string>
+    <string name="password_error">La contraseña debe tener al menos 8 caracteres</string>
     <string name="candado_password">Candado contraseña</string>
 </resources>
