@@ -1,0 +1,11 @@
+<resources>
+
+    <string name="app_name">My Application</string>
+    <string name="txt_Email">Email o Usuario</string>
+    <string name="txt_passsword">Contraseña</string>
+    <string name="btn_Inicio_Sesion">Iniciar Sesion</string>
+    <string name="ULogo">Login Logo </string>
+    <string name="uniLocal">uniLocal</string>
+    <string name="email_error">Ingrese un correo valido</string>
+    <string name="candado_password">Candado contraseña</string>
+</resources>
