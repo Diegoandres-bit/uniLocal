@@ -1,6 +1,6 @@
 package com.example.myapplication.screens
 
-import android.graphics.Color
+
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -8,15 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Divider
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,11 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.components.InputTextField
-import com.example.myapplication.components.button
+import com.example.myapplication.components.Button
 
 
 @Composable
 fun LoginForm() {
+    var isLoading by rememberSaveable { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -95,7 +95,7 @@ fun LoginForm() {
                     },
 
                     "email icon",
-                    Icons.Default.Email,
+                    Icons.Outlined.Email,
                     isPassword = false
                 )
                 InputTextField(
@@ -111,21 +111,25 @@ fun LoginForm() {
                     },
 
                     "password icon",
-                    Icons.Default.Lock,
+                    Icons.Outlined.Key,
                     isPassword = true
                 )
 
 
                 val isFormValid = !emailval && !passwordvall
 
-                button(
+                Button(
                     onClick = {
+                        isLoading = true
                         println("Usuario: $email, Contraseña: $password")
+                        //isLoading = false
+
                     },
                     enabled = isFormValid,
                     color = colorResource(R.color.green),
                     text = stringResource(R.string.btn_Inicio_Sesion),
-                    contentColor = colorResource(R.color.white)
+                    contentColor = colorResource(R.color.white),
+                    isLoading = isLoading
 
                 )
                 HorizontalDivider(
