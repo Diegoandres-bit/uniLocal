@@ -30,6 +30,7 @@ fun InputTextField(
     iconDescription: String,
     icon: ImageVector? = null,
     isPassword: Boolean = false,
+    enabled: Boolean = true
 ) {
     var isError by rememberSaveable { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) } // 👈 Nuevo estado
@@ -41,6 +42,7 @@ fun InputTextField(
             isError = onValidate(it)
         },
         isError = isError,
+        enabled = enabled,
         supportingText = {
             if (isError) {
                 Text(text = supportingText)
@@ -56,7 +58,7 @@ fun InputTextField(
         },
         // 👇 Ojo solo aparece si es un password
         trailingIcon = {
-            if (isPassword) {
+            if (isPassword && value.isNotEmpty()) {
                 val image = if (passwordVisible) {
                     Icons.Filled.Visibility
                 } else {

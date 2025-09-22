@@ -38,7 +38,7 @@ import com.example.myapplication.components.Button
 
 
 @Composable
-fun LoginForm() {
+fun LoginScreen() {
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
