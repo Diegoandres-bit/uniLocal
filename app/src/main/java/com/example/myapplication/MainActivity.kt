@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.myapplication.screens.LoginForm
+import com.example.myapplication.screens.ResetPasswordScreenForm
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,7 +15,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
 
-                    LoginForm()
+                    //LoginForm()
+                ResetPasswordScreenForm()
+
                 }
             }
         }
