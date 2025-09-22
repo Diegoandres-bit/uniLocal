@@ -3,9 +3,11 @@ package com.example.myapplication.screens
 
 import android.util.Patterns
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +33,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.components.InputTextField
@@ -42,9 +45,7 @@ fun LoginForm() {
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    var emailval by remember { mutableStateOf(false) }
-    var passwordvall by remember { mutableStateOf(false) }
+    var isFormValid by remember { mutableStateOf(false) }
 
     Column(
 
@@ -75,12 +76,14 @@ fun LoginForm() {
                         painter = painterResource(R.drawable.usimbol),
                         contentDescription = stringResource(R.string.ULogo),
                         modifier = Modifier.width(40.dp)
+
                     )
                     Text(
                         stringResource(R.string.uniLocal),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
+
                 }
 
                 InputTextField(
@@ -115,8 +118,25 @@ fun LoginForm() {
                     isPassword = true
                 )
 
+                Text(
+                    stringResource(R.string.txt_recuperar_contrasena),
+                    color = colorResource(R.color.green),
+                    fontWeight = FontWeight.Bold,
+                    textAlign=TextAlign.Start,
+                     modifier=Modifier
+                         .fillMaxWidth()
+                         .padding(vertical = 16.dp)
+                         .clickable{
+                         println("Recuperar contraseña")
 
-                val isFormValid = !emailval && !passwordvall
+
+                     }
+
+                )
+
+
+                 isFormValid = password.length >= 8 && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+
 
                 Button(
                     onClick = {
@@ -134,10 +154,35 @@ fun LoginForm() {
                 )
                 HorizontalDivider(
                     thickness = 1.dp,
-                    color = colorResource(R.color.grey)
+                    color = colorResource(R.color.grey),
+                    modifier = Modifier.padding(vertical = 16.dp)
                 )
+                Row{
 
-            }
+                        Text(
+                            stringResource(R.string.no_account),
+                            color = colorResource(R.color.black),
+
+
+
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                stringResource(R.string.Resgistrate),
+                                color = colorResource(R.color.green),
+                                fontWeight = FontWeight.Bold,
+                                modifier =Modifier.clickable{
+                                    println("Registrarse")
+                                }
+                            )
+
+
+
+                    }
+
+                }
+
+
         }
 
     }
