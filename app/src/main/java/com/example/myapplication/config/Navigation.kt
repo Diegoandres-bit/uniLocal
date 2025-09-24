@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.screens.CreateAccount
 import com.example.myapplication.screens.CreatePlaceScreen
 import com.example.myapplication.screens.LoginScreen
+import com.example.myapplication.screens.ResetPasswordScreenForm
 import com.example.myapplication.viewmodel.CreatePlaceIntents
 import com.example.myapplication.viewmodel.CreatePlaceViewModel
 import com.example.myapplication.viewmodel.ProfileViewModel
@@ -23,7 +24,7 @@ fun Navigation() {
 
     NavHost(
         navController = navController,
-        startDestination = RouteScreen.Register
+        startDestination = RouteScreen.RecoverPassword
     ){
 
         composable<RouteScreen.Login> {
@@ -37,7 +38,9 @@ fun Navigation() {
         }
 
         composable<RouteScreen.RecoverPassword> {
-//            RecoverScreen()
+            ResetPasswordScreenForm(
+                onBack = {navController.navigate(RouteScreen.Login)}
+            )
         }
 
         composable<RouteScreen.Profile> {
