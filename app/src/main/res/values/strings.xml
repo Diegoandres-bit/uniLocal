@@ -9,4 +9,22 @@
     <string name="email_error">Ingrese un correo valido</string>
     <string name="password_error">La contraseña debe tener al menos 8 caracteres</string>
     <string name="candado_password">Candado contraseña</string>
+
+    <!-- Pantalla Reset Password -->
+    <string name="reset_title">Recuperar contraseña</string>
+    <string name="reset_h1">¿Olvidaste tu contraseña?</string>
+    <string name="reset_subtitle">Te enviaremos un código para restablecerla.</string>
+    <string name="reset_contact_label">Correo  o teléfono</string>
+    <string name="reset_contact_supporting">Ingresa un correo o teléfono válido</string>
+    <string name="reset_send_code">Enviar código</string>
+    <string name="reset_have_code">Ya tengo un código</string>
+    <string name="reset_info_note">Te enviaremos un código de 6 dígitos al método seleccionado.</string>
+
+    <!-- Content descriptions (accesibilidad) -->
+    <string name="cd_back">Volver</string>
+    <string name="cd_contact_icon">Contacto</string>
+    <string name="cd_info_icon">Información</string>
+    <string name="txt_recuperar_contrasena">Recuperar contraseña</string>
+    <string name="no_account">¿No tienes una cuenta?</string>
+    <string name="Resgistrate">Resgistrate</string>
 </resources>
