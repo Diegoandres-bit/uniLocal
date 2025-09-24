@@ -1,13 +1,11 @@
 package com.example.myapplication
 
-import ProfileScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.myapplication.config.Navigation
+import com.example.myapplication.screens.LoginForm
 import com.example.myapplication.ui.theme.MyApplicationTheme
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -15,7 +13,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MyApplicationTheme {
-                Navigation()
+
+                    LoginForm()
                 }
             }
         }
