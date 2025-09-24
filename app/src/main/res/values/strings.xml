@@ -24,4 +24,7 @@
     <string name="cd_back">Volver</string>
     <string name="cd_contact_icon">Contacto</string>
     <string name="cd_info_icon">Información</string>
+    <string name="txt_recuperar_contrasena">Recuperar contraseña</string>
+    <string name="no_account">¿No tienes una cuenta?</string>
+    <string name="Resgistrate">Resgistrate</string>
 </resources>

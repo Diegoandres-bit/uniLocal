@@ -24,11 +24,15 @@ fun Navigation() {
 
     NavHost(
         navController = navController,
-        startDestination = RouteScreen.RecoverPassword
+        startDestination = RouteScreen.Login
     ){
 
         composable<RouteScreen.Login> {
-            LoginScreen()
+            LoginScreen(
+                onLogin = {navController.navigate(RouteScreen.CreatePlace)},
+                onRegister = {navController.navigate(RouteScreen.Register)},
+                onRecoverPassword = {navController.navigate(RouteScreen.RecoverPassword)}
+            )
         }
 
         composable<RouteScreen.Register> {
