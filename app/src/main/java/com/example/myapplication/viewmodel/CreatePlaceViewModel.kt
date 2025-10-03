@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 data class CreatePlaceUiState(
-    val stepIndex: Int = 0,                // 0 = Básicos, 1 = Ubicación, etc.
+    val stepIndex: Int = 0,
     val steps: List<String> = listOf("Básicos", "Ubicación", "Horario", "Revisión"),
 
     val name: String = "",
@@ -14,7 +14,7 @@ data class CreatePlaceUiState(
     val category: String? = null,
     val categoryOptions: List<String> = emptyList(),
 
-    val phones: String = "",               // “varios separados por coma”
+    val phones: String = "",
     val photos: List<Uri> = emptyList(),   // URIs de galería/cámara
     val isUploadingPhotos: Boolean = false,
     val uploadMessage: String? = null,     // ej: "Subiendo a Firebase..."
