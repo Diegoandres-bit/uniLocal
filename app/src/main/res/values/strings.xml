@@ -9,4 +9,5 @@
     <string name="email_error">Ingrese un correo valido</string>
     <string name="password_error">La contraseña debe tener al menos 8 caracteres</string>
     <string name="candado_password">Candado contraseña</string>
+    <string name="rating">Rating</string>
 </resources>

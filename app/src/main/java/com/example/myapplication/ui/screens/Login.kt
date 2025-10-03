@@ -1,4 +1,4 @@
-package com.example.myapplication.screens
+package com.example.myapplication.ui.a.screens
 
 
 import android.util.Patterns
@@ -33,8 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
-import com.example.myapplication.components.InputTextField
-import com.example.myapplication.components.Button
+import com.example.myapplication.ui.a.components.InputTextField
+import com.example.myapplication.ui.a.components.Button
 
 
 @Composable
