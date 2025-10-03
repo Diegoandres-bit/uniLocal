@@ -1,4 +1,4 @@
-package com.example.myapplication.components
+package com.example.myapplication.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape

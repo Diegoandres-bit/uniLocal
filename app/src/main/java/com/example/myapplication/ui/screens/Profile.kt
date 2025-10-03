@@ -23,8 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.components.Button
-import com.example.myapplication.components.InputTextField
+import com.example.myapplication.ui.components.Button
+import com.example.myapplication.ui.components.InputTextField
 import com.example.myapplication.R
 
 /* ---------- UI STATE Y MODELOS DINÁMICOS ---------- */

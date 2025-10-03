@@ -8,10 +8,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.screens.CreateAccount
-import com.example.myapplication.screens.CreatePlaceScreen
-import com.example.myapplication.screens.LoginScreen
-import com.example.myapplication.screens.ResetPasswordScreenForm
+import com.example.myapplication.ui.screens.CreateAccount
+import com.example.myapplication.ui.screens.CreatePlaceScreen
+import com.example.myapplication.ui.screens.LoginScreen
+import com.example.myapplication.ui.screens.ResetPasswordScreenForm
 import com.example.myapplication.viewmodel.CreatePlaceIntents
 import com.example.myapplication.viewmodel.CreatePlaceViewModel
 import com.example.myapplication.viewmodel.ProfileViewModel

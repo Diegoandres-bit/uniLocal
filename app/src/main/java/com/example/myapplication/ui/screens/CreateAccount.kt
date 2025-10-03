@@ -1,6 +1,5 @@
-package com.example.myapplication.screens
+package com.example.myapplication.ui.screens
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -20,8 +19,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
-import com.example.myapplication.components.Button
-import com.example.myapplication.components.InputTextField
+import com.example.myapplication.ui.components.Button
+import com.example.myapplication.ui.components.InputTextField
 
 
 @OptIn(ExperimentalMaterial3Api::class)
