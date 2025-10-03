@@ -1,4 +1,4 @@
-package com.example.myapplication.screens
+package com.example.myapplication.ui.screens
 
 
 import android.net.Uri
@@ -23,8 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.components.Button
-import com.example.myapplication.components.InputTextField
+import com.example.myapplication.ui.components.Button
+import com.example.myapplication.ui.components.InputTextField
 import com.example.myapplication.viewmodel.CreatePlaceIntents
 import com.example.myapplication.viewmodel.CreatePlaceUiState
 
