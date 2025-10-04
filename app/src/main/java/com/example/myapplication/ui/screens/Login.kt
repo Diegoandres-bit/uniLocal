@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.components.InputTextField
 import com.example.myapplication.ui.components.Button
+import com.example.myapplication.ui.components.Card
 
 
 @Composable
@@ -121,7 +123,6 @@ fun LoginScreen(
                     Icons.Outlined.Key,
                     isPassword = true
                 )
-
                 Text(
                     stringResource(R.string.txt_recuperar_contrasena),
                     color = colorResource(R.color.green),
@@ -171,8 +172,6 @@ fun LoginScreen(
                                 fontWeight = FontWeight.Bold,
                                 modifier =Modifier.clickable{onRegister()}
                             )
-
-
 
                     }
 
