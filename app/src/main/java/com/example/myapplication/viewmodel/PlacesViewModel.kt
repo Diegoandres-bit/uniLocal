@@ -1,14 +1,20 @@
 package com.example.myapplication.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.myapplication.model.City
 import com.example.myapplication.model.Location
 import com.example.myapplication.model.Place
 import com.example.myapplication.model.PlaceType
+import com.example.myapplication.model.ReviewStatus
 import com.example.myapplication.model.Schedule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.time.DayOfWeek
 import java.time.LocalTime
 
@@ -17,12 +23,22 @@ class PlacesViewModel: ViewModel() {
     private val _places = MutableStateFlow(emptyList<Place>())
     val places: StateFlow<List<Place>> = _places.asStateFlow()
 
+
+    val pendingPlaces: StateFlow<List<Place>> =
+        _places
+            .map { list -> list.filter { it.status == ReviewStatus.PENDING } }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val approvedPlaces: StateFlow<List<Place>> =
+        _places
+            .map { list -> list.filter { it.status == ReviewStatus.APPROVED } }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     init {
         loadPlaces()
     }
 
-    fun loadPlaces(){
-
+    fun loadPlaces() {
         _places.value = listOf(
             Place(
                 id = "1",
@@ -42,7 +58,7 @@ class PlacesViewModel: ViewModel() {
                 city = City.ARMENIA,
                 schedules = listOf(
                     Schedule(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
-                    Schedule(DayOfWeek.THURSDAY, LocalTime.of(10, 0), LocalTime.of(20, 0) ),
+                    Schedule(DayOfWeek.THURSDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
                     Schedule(DayOfWeek.FRIDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
                 )
             ),
@@ -56,7 +72,8 @@ class PlacesViewModel: ViewModel() {
                 phoneNumber = "3123123123",
                 type = PlaceType.BAR,
                 city = City.ARMENIA,
-                schedules = listOf()
+                schedules = listOf(),
+                createdByUserId = "2"
             ),
             Place(
                 id = "3",
@@ -68,7 +85,8 @@ class PlacesViewModel: ViewModel() {
                 phoneNumber = "3123123123",
                 type = PlaceType.HOTEL,
                 city = City.PEREIRA,
-                schedules = listOf()
+                schedules = listOf(),
+                createdByUserId = "2"
             ),
             Place(
                 id = "4",
@@ -80,7 +98,8 @@ class PlacesViewModel: ViewModel() {
                 phoneNumber = "3123123123",
                 type = PlaceType.SHOPPING,
                 city = City.MEDELLIN,
-                schedules = listOf()
+                schedules = listOf(),
+                createdByUserId = "2"
             ),
             Place(
                 id = "5",
@@ -92,7 +111,8 @@ class PlacesViewModel: ViewModel() {
                 phoneNumber = "3123123123",
                 type = PlaceType.SHOPPING,
                 city = City.BOGOTA,
-                schedules = listOf()
+                schedules = listOf(),
+                createdByUserId = "2"
             ),
             Place(
                 id = "6",
@@ -104,26 +124,39 @@ class PlacesViewModel: ViewModel() {
                 phoneNumber = "3123123123",
                 type = PlaceType.PARK,
                 city = City.BOGOTA,
-                schedules = listOf()
+                schedules = listOf(),
+                createdByUserId = "2"
             )
         )
-
     }
 
-    fun create(place: Place){
+    fun create(place: Place) {
         _places.value = _places.value + place
     }
 
-    fun findById(id: String): Place?{
-        return _places.value.find { it.id == id }
+    fun findById(id: String): Place? =
+        _places.value.find { it.id == id }
+
+    fun findByType(type: PlaceType): List<Place> =
+        _places.value.filter { it.type == type }
+
+    fun findByName(name: String): List<Place> =
+        _places.value.filter { it.title.contains(other = name, ignoreCase = true) }
+
+
+    fun approvePlace(id: String) {
+        _places.value = _places.value.map { p ->
+            if (p.id == id) {
+                Log.d("PlacesViewModel", "Lugar ${p.title} marcado como APROBADO")
+                p.copy(status = ReviewStatus.APPROVED)
+            } else p
+        }
     }
 
-    fun findByType(type: PlaceType): List<Place>{
-        return _places.value.filter { it.type == type }
-    }
 
-    fun findByName(name: String): List<Place>{
-        return _places.value.filter { it.title.contains(other = name, ignoreCase = true) }
+    fun rejectPlace(id: String) {
+        _places.value = _places.value.map { p ->
+            if (p.id == id) p.copy(status = ReviewStatus.REJECTED) else p
+        }
     }
-
 }
