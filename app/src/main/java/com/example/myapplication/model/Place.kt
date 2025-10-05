@@ -13,6 +13,9 @@ data class Place(
     val phoneNumber: String,
     val type: PlaceType,
     val schedules: List<Schedule>,
+    val createdByUserId: String? = null,
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val status: ReviewStatus = ReviewStatus.PENDING
 ){
 
     fun isOpen():Boolean{
