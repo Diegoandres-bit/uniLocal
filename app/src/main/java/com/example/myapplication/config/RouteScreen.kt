@@ -23,5 +23,10 @@ sealed class RouteScreen {
     @Serializable
     data object RecoverPassword : RouteScreen()
 
+    @Serializable
+    data object Home : RouteScreen()
+
+    @Serializable
+    data object Moderator : RouteScreen()
 
 }

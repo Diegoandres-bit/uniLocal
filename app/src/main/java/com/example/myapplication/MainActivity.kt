@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.config.Navigation
 import com.example.myapplication.ui.screens.user.navs.ContentUser
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
@@ -17,8 +18,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
                 MyApplicationTheme {
-                   
-                    //HomeModerator()
+                        Navigation()
                     }
             }
         }

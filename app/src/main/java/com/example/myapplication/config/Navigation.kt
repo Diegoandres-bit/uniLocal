@@ -1,6 +1,7 @@
 package com.example.myapplication.config
 
 import ProfileScreen
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -8,10 +9,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.myapplication.model.Role
+import com.example.myapplication.model.User
 import com.example.myapplication.ui.screens.CreateAccount
 import com.example.myapplication.ui.screens.CreatePlaceScreen
 import com.example.myapplication.ui.screens.LoginScreen
 import com.example.myapplication.ui.screens.ResetPasswordScreenForm
+import com.example.myapplication.ui.screens.moderator.HomeModerator
 import com.example.myapplication.viewmodel.CreatePlaceIntents
 import com.example.myapplication.viewmodel.CreatePlaceViewModel
 import com.example.myapplication.viewmodel.ProfileViewModel
@@ -25,25 +29,31 @@ fun Navigation() {
     NavHost(
         navController = navController,
         startDestination = RouteScreen.Login
-    ){
+    ) {
 
         composable<RouteScreen.Login> {
             LoginScreen(
-                onLogin = {navController.navigate(RouteScreen.CreatePlace)},
-                onRegister = {navController.navigate(RouteScreen.Register)},
-                onRecoverPassword = {navController.navigate(RouteScreen.RecoverPassword)}
+                onLogin = { user: User ->
+                        if (user.role == Role.ADMIN) {
+                            navController.navigate(RouteScreen.Moderator)
+                        } else {
+                            navController.navigate(RouteScreen.Home)
+                        }
+                },
+                onRegister = { navController.navigate(RouteScreen.Register) },
+                onRecoverPassword = { navController.navigate(RouteScreen.RecoverPassword) }
             )
         }
 
         composable<RouteScreen.Register> {
             CreateAccount(
-                onBack = {navController.navigate(RouteScreen.Login)}
+                onBack = { navController.navigate(RouteScreen.Login) }
             )
         }
 
         composable<RouteScreen.RecoverPassword> {
             ResetPasswordScreenForm(
-                onBack = {navController.navigate(RouteScreen.Login)}
+                onBack = { navController.navigate(RouteScreen.Login) }
             )
         }
 
@@ -95,6 +105,10 @@ fun Navigation() {
                     onPrevious = { vm.back() }
                 )
             )
+        }
+
+        composable<RouteScreen.Moderator> {
+            HomeModerator()
         }
 
     }
