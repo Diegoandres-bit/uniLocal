@@ -54,8 +54,11 @@ class UsersViewModel: ViewModel(){
         return _users.value.find { it.email == email }
     }
 
-    fun login(email: String, password: String): User?{
-        return _users.value.find { it.email == email && it.password == password }
+    fun login(identifier: String, password: String): User? {
+        return _users.value.find {
+            (it.email == identifier || it.username == identifier) && it.password == password
+        }
     }
+
 
 }

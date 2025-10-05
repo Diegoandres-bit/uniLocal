@@ -2,6 +2,7 @@ package com.example.myapplication.ui.screens
 
 
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -17,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -30,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,21 +39,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
+import com.example.myapplication.model.User
 import com.example.myapplication.ui.components.InputTextField
 import com.example.myapplication.ui.components.Button
-import com.example.myapplication.ui.components.Card
+import com.example.myapplication.viewmodel.UsersViewModel
 
 
 @Composable
 fun LoginScreen(
     onRegister: () -> Unit = {},
     onRecoverPassword: () -> Unit = {},
-    onLogin: () -> Unit = {},
+    onLogin: (User) -> Unit = {},
+    usersViewModel: UsersViewModel = UsersViewModel(),
 ) {
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isFormValid by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
 
@@ -100,7 +105,7 @@ fun LoginScreen(
                         email=it
                     },
                     onValidate = {
-                         email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                         email.isBlank()
                     },
 
                     "email icon",
@@ -136,16 +141,21 @@ fun LoginScreen(
                 )
 
 
-                 isFormValid = password.length >= 8 && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+                 isFormValid = password.length >= 8
 
 
                 Button(
                     onClick = {
                         isLoading = true
                         println("Usuario: $email, Contraseña: $password")
-                        onLogin()
-                        //isLoading = false
-
+                        val user = usersViewModel.login(email, password)
+                        if (user != null) {
+                            errorMessage = null
+                            onLogin(user)
+                        } else {
+                            errorMessage = "Credenciales incorrectas"
+                        }
+                        isLoading = false
                     },
                     enabled = isFormValid,
                     color = colorResource(R.color.green),
@@ -154,6 +164,10 @@ fun LoginScreen(
                     isLoading = isLoading
 
                 )
+                errorMessage?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = it, color = colorResource(R.color.black))
+                }
                 HorizontalDivider(
                     thickness = 1.dp,
                     color = colorResource(R.color.grey),
