@@ -1,46 +1,29 @@
 package com.example.myapplication.ui.screens.moderator
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.R
+import com.example.myapplication.model.User
 import com.example.myapplication.ui.screens.moderator.bottomBar.BottomBarModerator
 import com.example.myapplication.ui.screens.moderator.nav.ContentModerator
-import com.example.myapplication.ui.screens.moderator.nav.RouteTab
-import com.example.myapplication.ui.screens.moderator.tabs.Dashboard
-import com.example.myapplication.ui.screens.moderator.tabs.History
-import com.example.myapplication.ui.screens.moderator.tabs.Profile
 
 
 @Composable
-fun HomeModerator() {
+fun HomeModerator(
+    user: User?
+) {
     val navController = rememberNavController()
     Scaffold(
         modifier = Modifier.fillMaxSize(),

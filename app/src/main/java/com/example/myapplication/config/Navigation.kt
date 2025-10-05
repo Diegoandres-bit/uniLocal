@@ -1,7 +1,6 @@
 package com.example.myapplication.config
 
 import ProfileScreen
-import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +34,7 @@ fun Navigation() {
             LoginScreen(
                 onLogin = { user: User ->
                         if (user.role == Role.ADMIN) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
                             navController.navigate(RouteScreen.Moderator)
                         } else {
                             navController.navigate(RouteScreen.Home)
@@ -108,7 +108,18 @@ fun Navigation() {
         }
 
         composable<RouteScreen.Moderator> {
-            HomeModerator()
+            val user = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<User>("user")
+
+            // Si quieres, valida null por seguridad
+            if (user == null) {
+                // Manejo de error / fallback
+                navController.popBackStack()
+                return@composable
+            }
+
+            HomeModerator(user = user)
         }
 
     }
