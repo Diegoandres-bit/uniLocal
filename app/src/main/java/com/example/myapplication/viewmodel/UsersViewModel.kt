@@ -27,7 +27,7 @@ class UsersViewModel: ViewModel(){
                 role = Role.ADMIN,
                 city = City.ARMENIA,
                 email = "admin@email.com",
-                password = "123456"
+                password = "12345678"
             ),
             User(
                 id = "2",
