@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.moderator.tabs
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,10 +25,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,10 +52,21 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
     val places by placesViewModel.pendingPlaces.collectAsState()
 
     val users by usersViewModel.users.collectAsState()
+    val context = LocalContext.current
+    var selectedPlaceId by remember { mutableStateOf<String?>(null) }
+
+    // Si hay un lugar seleccionado, mostramos la pantalla de detalle
+    if (selectedPlaceId != null) {
+        PlaceDetailScreen(
+            id = selectedPlaceId!!,
+            viewModel = placesViewModel,
+            onBack = { selectedPlaceId = null } // al volver, regresa al Dashboard
+        )
+        return
+    }
 
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
 
@@ -71,7 +87,7 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
 
                     OutlinedTextField(
                         value = "",
-                        onValueChange = {  },
+                        onValueChange = { },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Buscar nombre o creador", maxLines = 1) },
                         singleLine = true,
@@ -132,8 +148,7 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
             val user = users.find { it.id == place.createdByUserId }
 
             Card(
-                elevated = true,
-                onClick = { },
+                elevated = true, onClick = { selectedPlaceId = place.id },
 
                 // ---------- CONTENIDO SUPERIOR ----------
                 content = {
@@ -172,13 +187,11 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
                                 IconText(
                                     icon = Icons.Outlined.Storefront,
                                     text = place.type.name.lowercase()
-                                        .replaceFirstChar { it.titlecase() }
-                                )
+                                        .replaceFirstChar { it.titlecase() })
                                 IconText(
                                     icon = Icons.Outlined.LocationOn,
                                     text = place.city.name.lowercase()
-                                        .replaceFirstChar { it.titlecase() }
-                                )
+                                        .replaceFirstChar { it.titlecase() })
                             }
 
                             val usernameText = user?.username?.let { "@$it" } ?: "Desconocido"
@@ -203,7 +216,7 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
                     ) {
 
                         OutlinedButton(
-                            onClick = { },
+                            onClick = { selectedPlaceId = place.id },
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.onSurface
@@ -213,11 +226,12 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
                             Text("Ver")
                         }
 
-
                         Button(
                             onClick = {
                                 placesViewModel.approvePlace(place.id)
-                                Log.d("Dashboard", "Place ID: ${place.id}")
+                                Toast.makeText(
+                                    context, "✅ Lugar aprobado correctamente", Toast.LENGTH_LONG
+                                ).show()
                             },
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -226,11 +240,11 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
                             )
                         ) { Text("Autorizar") }
 
-
                         Button(
                             onClick = {
                                 placesViewModel.rejectPlace(place.id)
-                                Log.d("Dashboard", "❌ Lugar rechazado: ${place.title}")
+                                Toast.makeText(context, "❌ Lugar rechazado", Toast.LENGTH_LONG)
+                                    .show()
                             },
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -239,8 +253,7 @@ fun Dashboard(placesViewModel: PlacesViewModel, usersViewModel: UsersViewModel) 
                             )
                         ) { Text("Rechazar") }
                     }
-                }
-            )
+                })
         }
     }
 }
@@ -287,7 +300,10 @@ private fun PendientesPill(count: Int) {
 
 @Composable
 fun IconText(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
