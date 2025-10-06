@@ -28,23 +28,21 @@ fun ContentModerator(padding: PaddingValues , navController: NavHostController, 
         navController = navController,
         startDestination = RouteTab.Dashboard
 
-    ){
+    ) {
 
 
         composable<RouteTab.Dashboard> {
-            Dashboard(placesViewModel= placesViewModel, usersViewModel = usersViewModel)
+            Dashboard(placesViewModel = placesViewModel, usersViewModel = usersViewModel)
         }
 
         composable<RouteTab.History> {
-            History()
+            History(viewModel = placesViewModel)
         }
 
 
         composable<RouteTab.Profile> {
             Profile(usersViewModel = usersViewModel, loggedInUser = currentUser)
         }
-
-
 
 
     }
