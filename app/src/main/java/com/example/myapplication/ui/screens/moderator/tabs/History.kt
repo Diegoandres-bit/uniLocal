@@ -44,7 +44,6 @@ fun History(viewModel: PlacesViewModel) {
                         place.city.name.contains(searchText, true))
     }
 
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -99,7 +98,39 @@ fun History(viewModel: PlacesViewModel) {
                 )
             }
 
+            val approvedCount = places.count { it.status == ReviewStatus.APPROVED }
+            val rejectedCount = places.count { it.status == ReviewStatus.REJECTED }
+            val totalCount = approvedCount + rejectedCount
+
             Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center // 🔹 Centra el contenido horizontalmente
+            ) {
+                when (selectedTab) {
+                    ReviewStatus.APPROVED -> GestionadosPill(
+                        approvedCount,
+                        "Autorizados",
+                        GreenCompany
+                    )
+
+                    ReviewStatus.REJECTED -> GestionadosPill(
+                        rejectedCount,
+                        "Rechazados",
+                        RedCompany
+                    )
+
+                    else -> GestionadosPill(
+                        totalCount,
+                        "Total gestionados",
+                        Color(0xFF2196F3)
+                    ) // Azul
+                }
+            }
+
+            Spacer(Modifier.height(20.dp)) // 🔹 Espacio adicional antes de la barra de búsqueda
 
             // Barra de búsqueda
             OutlinedTextField(
@@ -194,6 +225,39 @@ fun HistoryCard(place: Place) {
         }
     }
 }
+
+@Composable
+fun GestionadosPill(count: Int, label: String, color: Color) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(color)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            color = Color.White,
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp)
+        )
+
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.2f))
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "$count",
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp)
+            )
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
