@@ -60,5 +60,10 @@ class UsersViewModel: ViewModel(){
         }
     }
 
+    fun update(user: User) {
+        _users.value = _users.value.map { if (it.id == user.id) user else it }
+    }
+
+
 
 }
