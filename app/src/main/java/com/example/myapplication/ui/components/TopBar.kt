@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
 
 @Composable
-fun TopBar(
+fun     TopBar(
     imageId: Int,
     text: String,
     icon1: ImageVector,
@@ -27,7 +27,12 @@ fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(4.dp)
+            .statusBarsPadding()
+
+
+
+        ,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -40,13 +45,13 @@ fun TopBar(
             Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
-        Row {
+        Row (horizontalArrangement = Arrangement.spacedBy(12.dp)){
             IconButton(
                 onClick = { /*TODO*/ },
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
-                    .size(36.dp)
+                    .size(32.dp)
 
             ) {
                 Icon(
@@ -60,7 +65,7 @@ fun TopBar(
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
-                    .size(36.dp)
+                    .size(32.dp)
             ) {
                 Icon(
                     imageVector = icon2,

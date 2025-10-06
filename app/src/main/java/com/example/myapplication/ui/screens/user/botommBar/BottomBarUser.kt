@@ -1,6 +1,8 @@
 package co.edu.eam.lugaresapp.ui.user.bottombar
 
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
@@ -46,7 +48,10 @@ fun BottomBarUser(
     NavigationBar(
         containerColor = Color.Transparent,
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .fillMaxHeight(0.099f)
+        ,
+
     ){
 
         Destination.entries.forEachIndexed { index, destination ->
