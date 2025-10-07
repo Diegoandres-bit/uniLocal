@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.screens.moderator.tabs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,10 +31,19 @@ import com.example.myapplication.viewmodel.PlacesViewModel
 @Composable
 fun History(viewModel: PlacesViewModel) {
     val places by viewModel.places.collectAsState()
-
-    // Estado actual de los filtros
     var selectedTab by remember { mutableStateOf<ReviewStatus?>(null) }
     var searchText by remember { mutableStateOf("") }
+    var selectedPlaceId by remember { mutableStateOf<String?>(null) }
+
+    if (selectedPlaceId != null) {
+        PlaceDetailScreen(
+            id = selectedPlaceId!!,
+            viewModel = viewModel,
+            readOnly = true, // 🧩 modo solo lectura
+            onBack = { selectedPlaceId = null }
+        )
+        return
+    }
 
     // Filtrar según estado y texto
     val filteredPlaces = places.filter { place ->
@@ -107,7 +117,7 @@ fun History(viewModel: PlacesViewModel) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center // 🔹 Centra el contenido horizontalmente
+                horizontalArrangement = Arrangement.Center
             ) {
                 when (selectedTab) {
                     ReviewStatus.APPROVED -> GestionadosPill(
@@ -130,7 +140,7 @@ fun History(viewModel: PlacesViewModel) {
                 }
             }
 
-            Spacer(Modifier.height(20.dp)) // 🔹 Espacio adicional antes de la barra de búsqueda
+            Spacer(Modifier.height(20.dp))
 
             // Barra de búsqueda
             OutlinedTextField(
@@ -153,7 +163,9 @@ fun History(viewModel: PlacesViewModel) {
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(filteredPlaces) { place ->
-                        HistoryCard(place)
+                        HistoryCard(place) {
+                            selectedPlaceId = place.id
+                        }
                     }
                 }
             }
@@ -162,7 +174,7 @@ fun History(viewModel: PlacesViewModel) {
 }
 
 @Composable
-fun HistoryCard(place: Place) {
+fun HistoryCard(place: Place, onClick: () -> Unit = {}) {
     val (color, label) = when (place.status) {
         ReviewStatus.APPROVED -> GreenCompany to "Autorizado"
         ReviewStatus.REJECTED -> RedCompany to "Rechazado"
@@ -171,7 +183,9 @@ fun HistoryCard(place: Place) {
 
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {

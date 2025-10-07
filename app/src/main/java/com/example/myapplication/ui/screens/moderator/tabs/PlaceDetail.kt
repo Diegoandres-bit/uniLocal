@@ -42,6 +42,7 @@ import java.util.Locale
 fun PlaceDetailScreen(
     id: String,
     viewModel: PlacesViewModel,
+    readOnly: Boolean = false,
     onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -169,66 +170,67 @@ fun PlaceDetailScreen(
             }
 
             // Botones de acción
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp)
-            ) {
-                OutlinedButton(onClick = { /* ver en mapa */ }) {
-                    Text("Ver en mapa")
+            if (!readOnly) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp)
+                ) {
+                    OutlinedButton(onClick = { /* ver en mapa */ }) {
+                        Text("Ver en mapa")
+                    }
+
+                    val coroutineScope = rememberCoroutineScope()
+                    val context = LocalContext.current
+
+                    Button(
+                        onClick = {
+                            viewModel.approvePlace(place.id)
+                            Toast.makeText(
+                                context,
+                                "✅ Lugar aprobado correctamente",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            coroutineScope.launch {
+                                kotlinx.coroutines.delay(1500)
+                                onBack()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = GreenCompany)
+                    ) { Text("Autorizar") }
+
+                    Button(
+                        onClick = {
+                            viewModel.rejectPlace(place.id)
+                            Toast.makeText(
+                                context,
+                                "❌ Lugar rechazado",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            coroutineScope.launch {
+                                kotlinx.coroutines.delay(1500)
+                                onBack()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = RedCompany)
+                    ) { Text("Rechazar") }
                 }
 
-                val coroutineScope = rememberCoroutineScope()
-                val context = LocalContext.current
-
-                Button(
-                    onClick = {
-                        viewModel.approvePlace(place.id)
-                        Toast.makeText(
-                            context,
-                            "✅ Lugar aprobado correctamente",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        coroutineScope.launch {
-                            kotlinx.coroutines.delay(1500)
-                            onBack()
-                        }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = when (place.status) {
+                        com.example.myapplication.model.ReviewStatus.APPROVED -> "✅ Aprobado"
+                        com.example.myapplication.model.ReviewStatus.REJECTED -> "❌ Rechazado"
+                        else -> "⏳ Pendiente de revisión"
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = GreenCompany)
-                ) { Text("Autorizar") }
-
-                Button(
-                    onClick = {
-                        viewModel.rejectPlace(place.id)
-                        Toast.makeText(
-                            context,
-                            "❌ Lugar rechazado",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                        coroutineScope.launch {
-                            kotlinx.coroutines.delay(1500)
-                            onBack()
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = RedCompany)
-                ) { Text("Rechazar") }
+                    color = Color.Gray,
+                    fontSize = 13.sp,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
-
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = when (place.status) {
-                    com.example.myapplication.model.ReviewStatus.APPROVED -> "✅ Aprobado"
-                    com.example.myapplication.model.ReviewStatus.REJECTED -> "❌ Rechazado"
-                    else -> "⏳ Pendiente de revisión"
-                },
-                color = Color.Gray,
-                fontSize = 13.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
             Spacer(Modifier.height(24.dp))
         }
     }
