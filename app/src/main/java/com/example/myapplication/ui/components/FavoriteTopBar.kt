@@ -18,10 +18,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.myapplication.R
+import com.example.myapplication.ui.screens.user.navs.UserRouteTab
 
 @Composable
 fun FavoriteTopBar(
+    navController: NavHostController,
     text: String,
     icon1: ImageVector,
     icon2: ImageVector,
@@ -29,12 +32,17 @@ fun FavoriteTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(top = 18.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(UserRouteTab.HomeUser::class.qualifiedName!!) {
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop = true
+                }
+                          },
                 modifier = Modifier
             ) {
                 Icon(
@@ -50,7 +58,9 @@ fun FavoriteTopBar(
 
         Row {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+
+                },
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
