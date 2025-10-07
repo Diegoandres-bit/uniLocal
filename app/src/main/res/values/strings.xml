@@ -37,6 +37,6 @@
     <string name="Home">Home</string>
     <string name="Favoritos">Favoritos</string>
     <string name="txt_search">Busca por nombre</string>
-
+    <string name="Lugares_cerca">Resultados cerca de ti</string>
 
 </resources>
