@@ -1,39 +1,65 @@
 package com.example.myapplication.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheetExample() {
-    val scope = rememberCoroutineScope()
+fun SlidingPanel(
+    modifier: Modifier = Modifier,
+    peekHeight: Dp = 160.dp // 🔹 altura visible mínima
+) {
     val sheetState = rememberStandardBottomSheetState(
-        initialValue = SheetValue.PartiallyExpanded
+        initialValue = SheetValue.PartiallyExpanded, // empieza medio abierto
+        skipHiddenState = true
     )
-
-    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
+    val scope = rememberCoroutineScope()
 
     BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 80.dp,
+        scaffoldState = rememberBottomSheetScaffoldState(
+            bottomSheetState = sheetState
+        ),
+        sheetPeekHeight = peekHeight, // 🔹 límite inferior
+        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheetDragHandle = {
+            Box(
+                Modifier
+                    .width(40.dp)
+                    .height(4.dp)
+                    .background(Color.LightGray, RoundedCornerShape(2.dp))
+
+            )
+        },
         sheetContent = {
-            Text("Contenido del panel deslizante")
-        }
-    ) {
-        Button(onClick = {
-            scope.launch {
-                if (sheetState.currentValue == SheetValue.PartiallyExpanded) {
-                    sheetState.expand()
-                } else {
-                    sheetState.partialExpand()
-                }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Resultados cerca de ti", fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(8.dp))
+                Text("La Trattoria • 4.8 • 0.6 km")
+                Text("Café Aurora • 4.6 • 0.35 km")
+                Spacer(Modifier.height(24.dp))
             }
-        }) {
-            Text("Deslizar panel")
-        }
+        },
+        modifier = modifier
+    ) {
+        // 🔸 Fondo transparente para ver el mapa detrás
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
+        )
     }
 }

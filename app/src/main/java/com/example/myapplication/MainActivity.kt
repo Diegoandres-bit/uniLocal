@@ -1,6 +1,5 @@
 package com.example.myapplication
 
-import com.example.myapplication.ui.components.BottomSheetExample
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

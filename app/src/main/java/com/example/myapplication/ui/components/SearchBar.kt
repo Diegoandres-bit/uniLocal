@@ -25,11 +25,15 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 
 @Composable
-fun CompactSearchBar(query: String, onQueryChange: (String) -> Unit) {
+fun CompactSearchBar(query: String,
+                     onQueryChange: (String) -> Unit,
+                     placeHolder:String = "Busca por nombre",
+                     filter:Boolean =false,
+) {
     androidx.compose.material3.TextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Busca por nombre") },
+        placeholder = { Text(placeHolder) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
@@ -38,6 +42,7 @@ fun CompactSearchBar(query: String, onQueryChange: (String) -> Unit) {
 
             )
         },
+
         trailingIcon = {
             Button(
                 onClick = { /* Acción al presionar */ },

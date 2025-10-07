@@ -1,14 +1,12 @@
 package com.example.myapplication.ui.screens.user.tabs
 
 import TopBar
-import android.R.attr.query
+
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import com.example.myapplication.ui.components.Button
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 
@@ -22,10 +20,12 @@ import androidx.compose.material.icons.outlined.Person
 
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,6 +40,7 @@ import androidx.navigation.NavHostController
 import co.edu.eam.lugaresapp.ui.user.bottombar.BottomBarUser
 import coil.compose.AsyncImage
 import com.example.myapplication.R
+import com.example.myapplication.ui.components.SlidingPanel
 import com.example.myapplication.ui.components.CompactSearchBar
 import com.example.myapplication.viewmodel.PlacesViewModel
 
@@ -50,17 +51,20 @@ fun HomeUser(navController: NavHostController) {
 val placesViewModel = PlacesViewModel()
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var showSheet by remember { mutableStateOf(false) }
 
 Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopBar(
+                navController,
                 imageId = R.drawable.usimbol,
                 text = stringResource(R.string.uniLocal),
                 icon1 = Icons.Outlined.FavoriteBorder,
                 icon2 = Icons.Outlined.Person
             )
         },
+
         bottomBar = {
             BottomBarUser(
                 navController = navController,
@@ -156,6 +160,14 @@ Scaffold(
                     )
                 }
 
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 2.dp), // 🔹 deja espacio visual para el BottomBar
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    SlidingPanel()
+                }
 
             }
 

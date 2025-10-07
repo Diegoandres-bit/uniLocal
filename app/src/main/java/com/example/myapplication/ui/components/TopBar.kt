@@ -15,10 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.myapplication.R
+import com.example.myapplication.ui.screens.user.navs.UserRouteTab
 
 @Composable
 fun     TopBar(
+    navController: NavHostController,
     imageId: Int,
     text: String,
     icon1: ImageVector,
@@ -47,7 +50,11 @@ fun     TopBar(
 
         Row (horizontalArrangement = Arrangement.spacedBy(12.dp)){
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(UserRouteTab.Favoritos::class.qualifiedName!!) {
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop = true
+                }
+                },
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
