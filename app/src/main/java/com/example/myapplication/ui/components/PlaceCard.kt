@@ -19,6 +19,8 @@ import com.example.myapplication.model.Place
 import com.example.myapplication.model.ReviewStatus
 import com.example.myapplication.ui.theme.GreenCompany
 import com.example.myapplication.ui.theme.RedCompany
+import androidx.compose.ui.res.stringResource
+import com.example.myapplication.R
 
 @Composable
 fun PlaceCard(
@@ -26,9 +28,9 @@ fun PlaceCard(
     onClick: () -> Unit = {}
 ) {
     val (color, label) = when (place.status) {
-        ReviewStatus.APPROVED -> GreenCompany to "Autorizado"
-        ReviewStatus.REJECTED -> RedCompany to "Rechazado"
-        else -> Color.Gray to "Pendiente"
+        ReviewStatus.APPROVED -> GreenCompany to stringResource(R.string.status_approved)
+        ReviewStatus.REJECTED -> RedCompany to stringResource(R.string.status_rejected)
+        else -> Color.Gray to stringResource(R.string.status_pending)
     }
 
     Card(
@@ -84,7 +86,10 @@ fun PlaceCard(
                 )
 
                 Spacer(Modifier.height(4.dp))
-                Text("Motivo: ${place.description}", fontSize = 13.sp)
+                Text(
+                    "${stringResource(R.string.label_reason)}: ${place.description}",
+                    fontSize = 13.sp
+                )
             }
         }
     }

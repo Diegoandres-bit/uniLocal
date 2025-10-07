@@ -8,12 +8,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.model.Place
 import com.example.myapplication.model.ReviewStatus
 import com.example.myapplication.ui.components.PlaceCard
 import com.example.myapplication.ui.components.StatusFilterChips
@@ -21,6 +20,8 @@ import com.example.myapplication.ui.components.StatusPill
 import com.example.myapplication.ui.theme.GreenCompany
 import com.example.myapplication.ui.theme.RedCompany
 import com.example.myapplication.viewmodel.PlacesViewModel
+import com.example.myapplication.R
+import com.example.myapplication.ui.theme.BlueCompany
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +36,7 @@ fun History(viewModel: PlacesViewModel) {
         PlaceDetailScreen(
             id = selectedPlaceId!!,
             viewModel = viewModel,
-            readOnly = true, // 🧩 modo solo lectura
+            readOnly = true,
             onBack = { selectedPlaceId = null }
         )
         return
@@ -52,10 +53,13 @@ fun History(viewModel: PlacesViewModel) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Historial del Moderador") },
+                title = { Text(stringResource(R.string.txt_history_title)) },
                 navigationIcon = {
                     IconButton(onClick = { /* volver */ }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.txt_volver)
+                        )
                     }
                 }
             )
@@ -67,10 +71,10 @@ fun History(viewModel: PlacesViewModel) {
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // 🔹 Filtros reutilizables
+            // Filtros reutilizables
             StatusFilterChips(selectedTab) { selectedTab = it }
 
-            // 🔹 Contadores de lugares gestionados
+            // Contadores de lugares gestionados
             val approvedCount = places.count { it.status == ReviewStatus.APPROVED }
             val rejectedCount = places.count { it.status == ReviewStatus.REJECTED }
             val totalCount = approvedCount + rejectedCount
@@ -84,20 +88,20 @@ fun History(viewModel: PlacesViewModel) {
                 when (selectedTab) {
                     ReviewStatus.APPROVED -> StatusPill(
                         approvedCount,
-                        "Autorizados",
+                        stringResource(R.string.lbl_autorizados),
                         GreenCompany
                     )
 
                     ReviewStatus.REJECTED -> StatusPill(
                         rejectedCount,
-                        "Rechazados",
+                        stringResource(R.string.lbl_rechazados),
                         RedCompany
                     )
 
                     else -> StatusPill(
                         totalCount,
-                        "Total gestionados",
-                        Color(0xFF2196F3)
+                        stringResource(R.string.lbl_total_gestionados),
+                        color = BlueCompany
                     )
                 }
             }
@@ -108,8 +112,13 @@ fun History(viewModel: PlacesViewModel) {
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                placeholder = { Text("Buscar por nombre o ciudad") },
-                trailingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                placeholder = { Text(stringResource(R.string.place_holder_buscar)) },
+                trailingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = stringResource(R.string.icon_search_description)
+                    )
+                },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -118,7 +127,7 @@ fun History(viewModel: PlacesViewModel) {
             // 🔹 Lista de lugares
             if (filteredPlaces.isEmpty()) {
                 Text(
-                    text = "No hay registros que coincidan con tu búsqueda.",
+                    text = stringResource(R.string.txt_no_register),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -135,9 +144,3 @@ fun History(viewModel: PlacesViewModel) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ModeratorHistoryPreview() {
-    val vm = PlacesViewModel()
-    History(vm)
-}
