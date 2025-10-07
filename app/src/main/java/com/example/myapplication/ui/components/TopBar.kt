@@ -15,10 +15,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.myapplication.R
+import com.example.myapplication.ui.screens.user.navs.UserRouteTab
 
 @Composable
-fun TopBar(
+fun     TopBar(
+    navController: NavHostController,
     imageId: Int,
     text: String,
     icon1: ImageVector,
@@ -27,7 +30,12 @@ fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(4.dp)
+            .statusBarsPadding()
+
+
+
+        ,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -40,13 +48,17 @@ fun TopBar(
             Text(text = text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
-        Row {
+        Row (horizontalArrangement = Arrangement.spacedBy(12.dp)){
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { navController.navigate(UserRouteTab.Favoritos::class.qualifiedName!!) {
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop = true
+                }
+                },
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
-                    .size(36.dp)
+                    .size(32.dp)
 
             ) {
                 Icon(
@@ -60,7 +72,7 @@ fun TopBar(
                 modifier = Modifier
                     .clip(RoundedCornerShape(9.dp))
                     .background(colorResource(R.color.lightgreen))
-                    .size(36.dp)
+                    .size(32.dp)
             ) {
                 Icon(
                     imageVector = icon2,

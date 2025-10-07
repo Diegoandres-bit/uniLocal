@@ -18,7 +18,7 @@ fun ContentUser(padding: PaddingValues, navController: NavHostController) {
         startDestination = UserRouteTab.HomeUser
     ) {
         composable<UserRouteTab.HomeUser> {
-            HomeUser(navController = navController) // ✅ ahora sí
+            HomeUser(navController = navController)
         }
         composable<UserRouteTab.Favoritos> {
             Favoritos(navController = navController)
