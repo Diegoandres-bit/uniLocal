@@ -34,10 +34,7 @@ fun BottomBarModerator(navController: NavHostController) {
             NavigationBarItem(
                 label = { Text(text = stringResource(destination.label)) },
                 onClick = {
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
+                    navController.navigate(destination.route)
                 },
                 icon = {
                     Icon(
@@ -46,6 +43,8 @@ fun BottomBarModerator(navController: NavHostController) {
                     )
                 },
                 selected = isSelected
+
+
             )
         }
 
