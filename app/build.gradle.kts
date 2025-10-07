@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.coil.gif)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.unit)
+    implementation(libs.androidx.compose.runtime.saveable)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
