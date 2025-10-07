@@ -58,5 +58,31 @@
     <string name="status_pending">Pendiente</string>
     <string name="label_reason">Motivo</string>
 
+    <!-- Place Detail (PlaceHeaderInfo) -->
+    <string name="icon_location_description">Descripción del lugar</string>
+    <string name="icon_type_description">Tipo de lugar</string>
+
+    <!-- Labels -->
+    <string name="label_description">Descripción</string>
+    <string name="label_schedules">Horarios</string>
+    <string name="label_phone">Teléfono</string>
+    <string name="label_city">Ciudad</string>
+
+    <!-- Icon content descriptions -->
+    <string name="icon_description">Icono de descripción</string>
+    <string name="icon_phone">Icono de teléfono</string>
+    <string name="icon_city">Icono de ciudad</string>
+
+    <!-- 🔹 Botones -->
+    <string name="btn_view_on_map">Ver en mapa</string>
+    <string name="btn_approve">Autorizar</string>
+    <string name="btn_reject">Rechazar</string>
+
+    <!-- 🔹 Mensajes Toast -->
+    <string name="toast_see_on_map">Mostrando ubicación en el mapa</string>
+    <string name="toast_approved">Lugar aprobado correctamente</string>
+    <string name="toast_rejected">Lugar rechazado</string>
+
+
 
 </resources>
