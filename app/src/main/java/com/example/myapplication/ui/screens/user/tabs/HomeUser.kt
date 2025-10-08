@@ -2,7 +2,6 @@ package com.example.myapplication.ui.screens.user.tabs
 
 import TopBar
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,12 +27,10 @@ import androidx.navigation.NavHostController
 import co.edu.eam.lugaresapp.ui.user.bottombar.BottomBarUser
 import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.model.ReviewStatus
 import com.example.myapplication.ui.components.Button
 import com.example.myapplication.ui.components.CompactSearchBar
-import com.example.myapplication.ui.components.slipCard
+import com.example.myapplication.ui.components.SlipCard
 import com.example.myapplication.viewmodel.PlacesViewModel
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ViewModelConstructorInComposable")
@@ -45,8 +42,23 @@ fun HomeUser(navController: NavHostController) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val places by placesViewModel.places.collectAsState()
-
-
+    val filteredPlaces = remember(places, query) {
+            when {
+                query.equals("Restaurant", ignoreCase = true) -> {
+                    places.filter { it.type.name.equals("RESTAURANT", ignoreCase = true) }
+                }
+                query.equals("Shopping", ignoreCase = true) -> {
+                    places.filter { it.type.name.equals("SHOPPING", ignoreCase = true) }
+                }
+                query.equals("1-20km", ignoreCase = true) -> {
+                    places.filter { (it.distanceKm ?: 0.0) in 1.0..20.0 }
+                }
+                query.isNotBlank() -> {
+                    places.filter { it.title.contains(query, ignoreCase = true) }
+                }
+                else -> places
+            }
+        }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -75,7 +87,7 @@ fun HomeUser(navController: NavHostController) {
         ) {
             Divider(
                 modifier = Modifier.padding(vertical = 1.dp),
-                color = Color.Gray,
+                color = Color.LightGray,
                 thickness = 1.dp
             )
 
@@ -99,7 +111,8 @@ fun HomeUser(navController: NavHostController) {
                 ) {
                     item {
                         Button(
-                            onClick = { },
+                            onClick = {query="Restaurant" },
+
                             modifier = Modifier
                                 .width(132.dp)
                                 .clip(RoundedCornerShape(222.dp)),
@@ -110,18 +123,18 @@ fun HomeUser(navController: NavHostController) {
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = {query="Shopping" },
                             modifier = Modifier
-                                .width(78.dp)
+                                .width(130.dp)
                                 .clip(RoundedCornerShape(222.dp)),
-                            text = "Café",
+                            text = "Shopping",
                             color = colorResource(R.color.lightgreen),
                             contentColor = colorResource(R.color.teal_700)
                         )
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = { query= "1-20km"},
                             modifier = Modifier
                                 .width(90.dp)
                                 .clip(RoundedCornerShape(222.dp)),
@@ -132,61 +145,77 @@ fun HomeUser(navController: NavHostController) {
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = { query="open"},
                             modifier = Modifier
                                 .width(120.dp)
                                 .clip(RoundedCornerShape(222.dp)),
-                            text = "Abierto",
+                            text = "Open",
                             color = colorResource(R.color.lightgreen),
                             contentColor = colorResource(R.color.teal_700)
                         )
                     }
                 }
 
-                Box {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                ) {
                     AsyncImage(
                         model = "https://motor.elpais.com/wp-content/uploads/2022/01/google-maps-22.jpg",
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.FillBounds
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
+
                     Surface(
-                        tonalElevation = 1.dp,
+                        color=Color.White,
+                        tonalElevation = 8.dp,
                         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .height(250.dp) // <- controla qué tanto cubre
-                            .padding(bottom = 0.dp) // <- ajusta según altura del BottomBar
+                            .height(280.dp)
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(16.dp)
+                                .background(Color.White)
                         ) {
-                            Text(stringResource(R.string.Lugares_cerca))
-                        }
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = 8.dp)
-                        ) {
-                            items(places) { place ->
-                                
+                            Text(
+                                text = stringResource(R.string.Lugares_cerca),
+                                fontWeight = FontWeight.SemiBold
+                            )
 
-                                slipCard(
-                                    name = place.title,
-                                    description = place.description,
-                                    imageUrl = place.images.firstOrNull() ?: "",
-                                    onClick = {
-                                   }
-                                )
+                            Divider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = Color.LightGray,
+                                thickness = 1.dp
+                            )
+
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(filteredPlaces) { place ->
+                                    SlipCard(
+                                        name = place.title,
+                                        type = place.type,
+                                        imageUrl = place.images.firstOrNull() ?: "",
+                                        puntuation = place.puntuation,
+                                        distance = place.distanceKm ?: 0.0,
+                                        onClick = {  }
+                                    )
+                                }
                             }
                         }
+                    }
+                }
 
                     }
             }
         }
     }
-}
-}
+
+

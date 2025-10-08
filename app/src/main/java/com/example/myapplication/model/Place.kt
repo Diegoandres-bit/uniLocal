@@ -15,7 +15,11 @@ data class Place(
     val schedules: List<Schedule>,
     val createdByUserId: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    val status: ReviewStatus = ReviewStatus.PENDING
+    val status: ReviewStatus = ReviewStatus.PENDING,
+    val distanceKm: Double? = null,
+    val puntuation: Double? = null
+
+
 ){
 
     fun isOpen():Boolean{
