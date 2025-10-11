@@ -60,7 +60,9 @@ class PlacesViewModel: ViewModel() {
                     Schedule(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
                     Schedule(DayOfWeek.THURSDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
                     Schedule(DayOfWeek.FRIDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
-                )
+                ),
+                distanceKm = 15.5,
+                puntuation = 4.7,
             ),
             Place(
                 id = "2",
@@ -73,6 +75,8 @@ class PlacesViewModel: ViewModel() {
                 type = PlaceType.BAR,
                 city = City.ARMENIA,
                 schedules = listOf(),
+                distanceKm = 10.5,
+                puntuation = 2.8,
                 createdByUserId = "2"
             ),
             Place(
@@ -86,6 +90,8 @@ class PlacesViewModel: ViewModel() {
                 type = PlaceType.HOTEL,
                 city = City.PEREIRA,
                 schedules = listOf(),
+                distanceKm = 35.0,
+                puntuation = 2.0,
                 createdByUserId = "2"
             ),
             Place(
@@ -99,6 +105,8 @@ class PlacesViewModel: ViewModel() {
                 type = PlaceType.SHOPPING,
                 city = City.MEDELLIN,
                 schedules = listOf(),
+                distanceKm = 5.5,
+                puntuation = 4.5,
                 createdByUserId = "2"
             ),
             Place(
@@ -112,6 +120,8 @@ class PlacesViewModel: ViewModel() {
                 type = PlaceType.SHOPPING,
                 city = City.BOGOTA,
                 schedules = listOf(),
+                distanceKm = 25.0,
+                puntuation = 4.0,
                 createdByUserId = "2"
             ),
             Place(
@@ -125,6 +135,8 @@ class PlacesViewModel: ViewModel() {
                 type = PlaceType.PARK,
                 city = City.BOGOTA,
                 schedules = listOf(),
+                distanceKm = 45.1,
+                puntuation = 3.8,
                 createdByUserId = "2"
             )
         )
@@ -142,7 +154,8 @@ class PlacesViewModel: ViewModel() {
 
     fun findByName(name: String): List<Place> =
         _places.value.filter { it.title.contains(other = name, ignoreCase = true) }
-
+    fun findByKM(km: Double): List<Place> =
+        _places.value.filter { it.distanceKm!! <= km}
 
     fun approvePlace(id: String) {
         _places.value = _places.value.map { p ->
