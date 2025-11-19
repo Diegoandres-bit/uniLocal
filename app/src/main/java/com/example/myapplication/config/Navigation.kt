@@ -175,7 +175,7 @@ fun Navigation() {
                     onCategoryChange = vm::onCategoryChange,
                     onPhonesChange = vm::onPhonesChange,
 
-                    onAddPhotoClick = vm::simulatePhotoUpload,
+                    onPhotosSelected = vm::onPhotosSelected,
                     onRemovePhoto = vm::removePhoto,
 
                     onSaveDraft = vm::saveDraft,

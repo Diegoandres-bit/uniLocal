@@ -2,7 +2,6 @@ package com.example.myapplication.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.FakeCloudDataSource
 import com.example.myapplication.data.remote.FirebaseAuthRepository
 import com.example.myapplication.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +33,6 @@ class UsersViewModel(
             runCatching { authRepository.getCurrentUser() }
                 .onSuccess { user ->
                     user?.let {
-                        FakeCloudDataSource.overrideCurrentUser(it)
                         _loggedInUser.value = it
                         _uiState.update { state -> state.copy(currentUser = it) }
                     }
@@ -46,22 +44,10 @@ class UsersViewModel(
         viewModelScope.launch {
             val trimmed = identifier.trim()
             _uiState.update { it.copy(isLoading = true, error = null, infoMessage = null) }
-
-            var firebaseError: Throwable? = null
-            val firebaseUser = runCatching { authRepository.login(trimmed, password) }
-                .onFailure { firebaseError = it }
-                .getOrNull()
-
-            if (firebaseUser != null) {
-                handleSuccessfulLogin(firebaseUser)
-                return@launch
-            }
-
-            FakeCloudDataSource.login(trimmed, password)
+            runCatching { authRepository.login(trimmed, password) }
                 .onSuccess { user -> handleSuccessfulLogin(user) }
                 .onFailure { e ->
-                    val displayError = firebaseError ?: e
-                    _uiState.update { it.copy(isLoading = false, error = displayError.message ?: "Error") }
+                    _uiState.update { it.copy(isLoading = false, error = e.message ?: "Error") }
                 }
         }
     }
@@ -87,7 +73,6 @@ class UsersViewModel(
 
     fun logout() {
         authRepository.logout()
-        FakeCloudDataSource.overrideCurrentUser(null)
         _loggedInUser.value = null
         _uiState.update { it.copy(currentUser = null) }
     }
@@ -97,7 +82,6 @@ class UsersViewModel(
     }
 
     private fun handleSuccessfulLogin(user: User) {
-        FakeCloudDataSource.overrideCurrentUser(user)
         _loggedInUser.value = user
         _uiState.update { it.copy(isLoading = false, currentUser = user, error = null) }
     }

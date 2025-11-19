@@ -1,16 +1,17 @@
 package com.example.myapplication.viewmodel
 
+import android.app.Application
 import android.net.Uri
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.FakeCloudDataSource
+import com.example.myapplication.data.remote.CloudinaryUploader
+import com.example.myapplication.data.remote.FirestorePlacesRepository
 import com.example.myapplication.model.City
 import com.example.myapplication.model.Location
 import com.example.myapplication.model.PlaceType
 import com.example.myapplication.model.Schedule
 import java.time.DayOfWeek
 import java.time.LocalTime
-import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,7 +50,7 @@ data class CreatePlaceIntents(
     val onCategoryChange: (String) -> Unit,
     val onPhonesChange: (String) -> Unit,
 
-    val onAddPhotoClick: () -> Unit,       // abre picker
+    val onPhotosSelected: (List<Uri>) -> Unit,       // procesa resultado del picker
     val onRemovePhoto: (Uri) -> Unit,
 
     val onSaveDraft: () -> Unit,
@@ -57,7 +58,11 @@ data class CreatePlaceIntents(
     val onPrevious: () -> Unit
 )
 
-class CreatePlaceViewModel : ViewModel() {
+class CreatePlaceViewModel(
+    application: Application,
+    private val placesRepository: FirestorePlacesRepository = FirestorePlacesRepository(),
+    private val uploader: CloudinaryUploader = CloudinaryUploader(application.applicationContext)
+) : AndroidViewModel(application) {
     private val _ui = MutableStateFlow(CreatePlaceUiState())
     val ui: StateFlow<CreatePlaceUiState> = _ui
 
@@ -80,7 +85,7 @@ class CreatePlaceViewModel : ViewModel() {
     }
     fun onPhonesChange(v: String) { _ui.update { it.copy(phones = v) } }
 
-    fun addPhoto(uri: Uri, remoteUrl: String) {
+    private fun addPhoto(uri: Uri, remoteUrl: String) {
         _ui.update {
             it.copy(
                 localPhotos = it.localPhotos + uri,
@@ -103,15 +108,30 @@ class CreatePlaceViewModel : ViewModel() {
         recompute()
     }
 
-    fun simulatePhotoUpload() {
+    fun onPhotosSelected(candidates: List<Uri>) {
+        if (candidates.isEmpty()) return
+        val availableSlots = (MAX_PHOTOS - _ui.value.uploadedPhotos.size).coerceAtLeast(0)
+        if (availableSlots <= 0) {
+            _ui.update { it.copy(uploadMessage = "Ya agregaste el máximo de fotos") }
+            return
+        }
+        val toUpload = candidates.take(availableSlots)
+
         viewModelScope.launch {
-            val fakeLocal = Uri.parse("content://upload/${UUID.randomUUID()}")
-            _ui.update { it.copy(isUploadingPhotos = true, uploadMessage = "Subiendo foto...") }
-            val result = FakeCloudDataSource.uploadPhoto(fakeLocal)
-            delay(100)
-            result.onSuccess { url -> addPhoto(fakeLocal, url) }
-            result.onFailure { e ->
-                _ui.update { it.copy(uploadMessage = e.message ?: "Error subiendo foto") }
+            _ui.update {
+                it.copy(
+                    isUploadingPhotos = true,
+                    uploadMessage = "Subiendo ${toUpload.size} foto(s)..."
+                )
+            }
+            toUpload.forEach { uri ->
+                val result = uploader.upload(uri)
+                result.onSuccess { url -> addPhoto(uri, url) }
+                    .onFailure { e ->
+                        _ui.update { state ->
+                            state.copy(uploadMessage = e.message ?: "Error subiendo foto")
+                        }
+                    }
             }
             _ui.update { it.copy(isUploadingPhotos = false) }
         }
@@ -147,7 +167,7 @@ class CreatePlaceViewModel : ViewModel() {
     private fun publishPlace() {
         val state = _ui.value
         val category = state.category ?: return
-        val draft = FakeCloudDataSource.CreatePlaceDraft(
+        val draft = FirestorePlacesRepository.CreatePlaceDraft(
             name = state.name,
             description = state.description,
             category = category,
@@ -166,7 +186,7 @@ class CreatePlaceViewModel : ViewModel() {
 
         viewModelScope.launch {
             _ui.update { it.copy(isPublishing = true, lastMessage = null) }
-            FakeCloudDataSource.createPlace(draft)
+            placesRepository.createPlace(draft)
                 .onSuccess { place ->
                     _ui.update {
                         it.copy(
@@ -188,5 +208,9 @@ class CreatePlaceViewModel : ViewModel() {
                     _ui.update { it.copy(isPublishing = false, lastMessage = e.message ?: "Error publicando") }
                 }
         }
+    }
+
+    companion object {
+        private const val MAX_PHOTOS = 5
     }
 }

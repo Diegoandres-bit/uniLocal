@@ -1,4 +1,6 @@
 
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,6 +11,10 @@ plugins {
 }
 
 android {
+    val localProps = gradleLocalProperties(rootDir)
+    val cloudinaryCloudName = localProps.getProperty("cloudinary.cloud_name") ?: ""
+    val cloudinaryUploadPreset = localProps.getProperty("cloudinary.upload_preset") ?: ""
+
     namespace = "com.example.myapplication"
     compileSdk = 36
 
@@ -20,6 +26,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"$cloudinaryCloudName\"")
+        buildConfigField("String", "CLOUDINARY_UPLOAD_PRESET", "\"$cloudinaryUploadPreset\"")
     }
 
     buildTypes {
@@ -74,6 +82,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.okhttp)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
