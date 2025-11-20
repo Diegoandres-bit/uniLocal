@@ -30,7 +30,7 @@ import com.example.myapplication.R
 import com.example.myapplication.model.Place
 import com.example.myapplication.ui.components.Button
 import com.example.myapplication.ui.components.CompactSearchBar
-import com.example.myapplication.ui.components.slipCard
+import com.example.myapplication.ui.components.SlipCard
 import com.example.myapplication.viewmodel.PlacesViewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapboxMap
@@ -126,7 +126,7 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
         ) {
             Divider(
                 modifier = Modifier.padding(vertical = 1.dp),
-                color = Color.Gray,
+                color = Color.LightGray,
                 thickness = 1.dp
             )
 
@@ -150,7 +150,8 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
                 ) {
                     item {
                         Button(
-                            onClick = { },
+                            onClick = {query="Restaurant" },
+
                             modifier = Modifier
                                 .width(132.dp)
                                 .clip(RoundedCornerShape(222.dp)),
@@ -161,18 +162,18 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = {query="Shopping" },
                             modifier = Modifier
-                                .width(78.dp)
+                                .width(130.dp)
                                 .clip(RoundedCornerShape(222.dp)),
-                            text = "Café",
+                            text = "Shopping",
                             color = colorResource(R.color.lightgreen),
                             contentColor = colorResource(R.color.teal_700)
                         )
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = { query= "1-20km"},
                             modifier = Modifier
                                 .width(90.dp)
                                 .clip(RoundedCornerShape(222.dp)),
@@ -183,11 +184,11 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
                     }
                     item {
                         Button(
-                            onClick = { },
+                            onClick = { query="open"},
                             modifier = Modifier
                                 .width(120.dp)
                                 .clip(RoundedCornerShape(222.dp)),
-                            text = "Abierto",
+                            text = "Open",
                             color = colorResource(R.color.lightgreen),
                             contentColor = colorResource(R.color.teal_700)
                         )
@@ -216,7 +217,8 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
                         )
                     }
                     Surface(
-                        tonalElevation = 1.dp,
+                        color=Color.White,
+                        tonalElevation = 8.dp,
                         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -228,6 +230,7 @@ fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel)
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(16.dp)
+                                .background(Color.White)
                         ) {
                             Text(stringResource(R.string.Lugares_cerca))
                         }
