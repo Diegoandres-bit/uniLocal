@@ -1,318 +1,308 @@
-import android.content.Context
-import androidx.compose.foundation.Image
+package com.example.myapplication.ui.screens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.EditOff
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.ui.components.Button
-import com.example.myapplication.ui.components.InputTextField
-import com.example.myapplication.R
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.myapplication.ui.components.Button as AppButton
+import com.example.myapplication.ui.components.Card as AppCard
 
-/* ---------- UI STATE Y MODELOS DINÁMICOS ---------- */
-
-data class ProfileUiState(
-    val isEditing: Boolean,
-    val name: String,
-    val username: String,
-    val city: String,
-    val email: String,
-    val avatarRes: Int?,                    // si usas recurso local, o null si no hay
-    val comments: List<CommentItemUi>,      // lista dinámica
-    val chips: List<String>,                // ["Categoría", "Ciudad", "Buscar"] u otros
-    val isSaving: Boolean = false
-)
-
-data class CommentItemUi(val text: String, val meta: String)
-
-/* ---------- ENTRADA PÚBLICA ---------- */
-
+/**
+ * Firma pensada para tu ViewModel actual (no se crean modelos nuevos).
+ * - uiState: debes pasar el estado que ya expones desde ProfileViewModel.
+ * - onBack / onToggleEdit / onSave / onNameChange / onUsernameChange / onCityChange:
+ *   callbacks que ya usas en tu Navigation.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    uiState: ProfileUiState,
+    uiState: Any,                         // <-- usa el tipo de tu UI state real (ej. ProfileUiState)
     onBack: () -> Unit,
-    onToggleEdit: () -> Unit,                 // devuelve el nuevo estado (opcional)
-    onSave: (Context) -> Unit,
+    onToggleEdit: () -> Unit,
+    onSave: (android.content.Context) -> Unit,
     onNameChange: (String) -> Unit,
     onUsernameChange: (String) -> Unit,
     onCityChange: (String) -> Unit
 ) {
-    val isNameError = uiState.name.length !in 2..40
-    val isUserError = uiState.username.isBlank()
-    val isCityError = uiState.city.isBlank()
-    val isFormValid = !isNameError && !isUserError && !isCityError
     val context = LocalContext.current
-
-    val primary = colorResource(id = R.color.green)
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar( // título centrado
-                title = { Text("Perfil", fontWeight = FontWeight.SemiBold) },
+            TopAppBar(
+                title = { Text("Perfil") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Atrás")
+                        Icon(Icons.Filled.Person, contentDescription = "Atrás")
                     }
                 },
                 actions = {
-                    TextButton(onClick = { onToggleEdit() }) {
-                        Icon(if (uiState.isEditing) Icons.Outlined.EditOff else Icons.Outlined.Edit , contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-                        Text(if (uiState.isEditing) "Cancelar" else "Editar", color = primary)
-                    }
+                    AppButton(
+                        onClick = onToggleEdit,
+                        text = "Editar",
+                        color = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             )
         }
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(bottom = 24.dp)
+                .padding(padding)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                ProfileHeader(
-                    avatarRes = uiState.avatarRes,
-                    name = uiState.name,
-                    handle = "@${uiState.username}"
-                )
-            }
 
-            if (uiState.chips.isNotEmpty()) {
-                item { FilterChipsRow(chips = uiState.chips, chipColor = primary) }
-            }
+            // ======= Header (avatar, nombre, username, chips) =======
+            AppCard(
+                elevated = true,
+                padding = PaddingValues(16.dp),
+                content = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Avatar(url = uiState.read<String?>("avatarUrl"))
 
-            item { Divider(Modifier.padding(top = 8.dp)) }
-
-            // Info “view mode” (dinámico)
-            item {
-                Column(Modifier.fillMaxWidth()) {
-                    InfoRow(label = "Email", value = uiState.email)
-                    InfoRow(label = "Ciudad", value = uiState.city)
-                    InfoRow(label = "Username", value = uiState.username)
-                }
-            }
-
-            if (uiState.comments.isNotEmpty()) {
-                item { Divider() }
-                item { SectionTitle("Tus comentarios") }
-                items(uiState.comments) { c ->
-                    CommentBubble(item = c, bubbleColor = primary.copy(alpha = 0.12f))
-                }
-            }
-
-            item { Divider() }
-
-            item { SectionTitle("Editar perfil") }
-
-            // Form de edición (reutiliza tu InputTextField)
-            item {
-                Column(Modifier.padding(horizontal = 16.dp)) {
-                    InputTextField(
-                        value = uiState.name,
-                        label = "Nombre",
-                        supportingText = "Min 2 — Máx 40 caracteres",
-                        onValueChange = onNameChange,
-                        onValidate = { it.length !in 2..40 },
-                        iconDescription = "Nombre",
-                        icon = null,
-                        enabled = uiState.isEditing
-                    )
-
-                    Spacer(Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
                         Column(Modifier.weight(1f)) {
-                            InputTextField(
-                                value = uiState.username,
-                                label = "Username",
-                                supportingText = "Requerido",
-                                onValueChange = onUsernameChange,
-                                onValidate = { it.isBlank() },
-                                iconDescription = "Usuario",
-                                icon = null,
-                                enabled = uiState.isEditing
+                            Text(
+                                uiState.read<String>("fullName"),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = "@${uiState.read<String>("username")}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                FilterPill("Categoría")
+                                FilterPill("Ciudad")
+                                FilterPill("Buscar")
+                            }
                         }
-                        Column(Modifier.weight(1f)) {
-                            InputTextField(
-                                value = uiState.city,
-                                label = "Ciudad",
-                                supportingText = "Requerido",
-                                onValueChange = onCityChange,
-                                onValidate = { it.isBlank() },
-                                iconDescription = "Ciudad",
-                                icon = null,
-                                enabled = uiState.isEditing
+                    }
+                }
+            )
+
+            // ======= Datos de solo lectura =======
+            AppCard(
+                elevated = true,
+                padding = PaddingValues(0.dp),
+                content = {
+                    ReadonlyRow(label = "Email", value = uiState.read<String>("email"))
+                    HorizontalDivider()
+                    ReadonlyRow(label = "Ciudad", value = uiState.read<String>("city"))
+                    HorizontalDivider()
+                    ReadonlyRow(label = "Username", value = uiState.read<String>("username"))
+                }
+            )
+
+            // ======= Formulario de edición =======
+            AppCard(
+                elevated = true,
+                padding = PaddingValues(16.dp),
+                content = {
+                    Text("Editar perfil", style = MaterialTheme.typography.titleMedium)
+
+                    Spacer(Modifier.height(8.dp))
+
+                    LabeledField(label = "Nombre") {
+                        OutlinedTextField(
+                            value = uiState.read<String>("fullName"),
+                            onValueChange = onNameChange,
+                            enabled = uiState.read<Boolean>("isEditing") && !uiState.read<Boolean>("isSaving"),
+                            placeholder = { Text("María González") },
+                            supportingText = { Text("Min 2 — Máx 40 caracteres") },
+                            isError = uiState.read<String?>("nameError") != null,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        uiState.read<String?>("nameError")?.let {
+                            Text(
+                                it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
 
-                    Spacer(Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            LabeledField("Username") {
+                                OutlinedTextField(
+                                    value = uiState.read<String>("username"),
+                                    onValueChange = onUsernameChange,
+                                    enabled = uiState.read<Boolean>("isEditing") && !uiState.read<Boolean>("isSaving"),
+                                    placeholder = { Text("maria.g") },
+                                    isError = uiState.read<String?>("usernameError") != null,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                uiState.read<String?>("usernameError")?.let {
+                                    Text(
+                                        it,
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        }
+                        Column(Modifier.weight(1f)) {
+                            LabeledField("Ciudad") {
+                                OutlinedTextField(
+                                    value = uiState.read<String>("city"),
+                                    onValueChange = onCityChange,
+                                    enabled = uiState.read<Boolean>("isEditing") && !uiState.read<Boolean>("isSaving"),
+                                    placeholder = { Text("Bogotá") },
+                                    isError = uiState.read<String?>("cityError") != null,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                uiState.read<String?>("cityError")?.let {
+                                    Text(
+                                        it,
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        }
+                    }
 
-                    // Reutiliza tu LoadingButton (sin quemar texto/estado)
-                    Button(
-                        onClick = { onSave(context) },
-                        text = if (uiState.isEditing) "Guardar cambios" else "Editar",
-                        color = primary,
-                        contentColor = Color.White,
-                        enabled = uiState.isEditing && isFormValid && !uiState.isSaving,
-                        isLoading = uiState.isSaving,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AppButton(
+                            onClick = onToggleEdit,
+                            text = "Cancelar",
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            enabled = uiState.read<Boolean>("isEditing") && !uiState.read<Boolean>("isSaving")
+                        )
+                        AppButton(
+                            onClick = { onSave(context) },
+                            text = "Guardar",
+                            color = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            enabled = uiState.read<Boolean>("isEditing") && !uiState.read<Boolean>("isSaving"),
+                            isLoading = uiState.read<Boolean>("isSaving")
+                        )
+                    }
                 }
-            }
+            )
         }
     }
 }
 
-/* ---------- REUTILIZABLES (no inputs ni buttons) ---------- */
+/* =================== Subcomponentes =================== */
 
 @Composable
-private fun ProfileHeader(
-    avatarRes: Int?,
-    name: String,
-    handle: String
+private fun LabeledField(
+    label: String,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (avatarRes != null) {
-            Image(
-                painter = painterResource(id = avatarRes),
-                contentDescription = "Avatar",
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE9ECEF)),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            // placeholder cuando no hay avatar
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE9ECEF))
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text(handle, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        content()
     }
 }
 
 @Composable
-private fun FilterChipsRow(
-    chips: List<String>,
-    chipColor: Color
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        chips.forEach { label ->
-            AssistChip(
-                onClick = { /* TODO hook dinámico si lo necesitas */ },
-                label = { Text(label) },
-                shape = RoundedCornerShape(12.dp),
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = chipColor.copy(alpha = 0.12f),
-                    labelColor = chipColor
-                )
-            )
-        }
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
+private fun ReadonlyRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = Color.Gray)
-        Text(value, fontWeight = FontWeight.Medium)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
 @Composable
-private fun CommentBubble(item: CommentItemUi, bubbleColor: Color) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Top
+private fun FilterPill(text: String) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
-        // avatar “dot” del comentario
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+}
+
+@Composable
+private fun Avatar(url: String?) {
+    val size = 72.dp
+    if (url.isNullOrBlank()) {
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(size)
                 .clip(CircleShape)
-                .background(Color(0xFFE9ECEF))
-        )
-        Spacer(Modifier.width(12.dp))
-
-        Column(Modifier.weight(1f)) {
-            Surface(color = bubbleColor, shape = RoundedCornerShape(16.dp)) {
-                Text(
-                    text = item.text,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    color = Color(0xFF104C3C) // tono verdoso legible
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = item.meta,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Filled.Person, contentDescription = null)
         }
+    } else {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(url)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+        )
     }
 }
 
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
-    )
+/* ============ Util para leer campos del uiState sin castear arriba ============ */
+/* Sustituye por tu tipo real si prefieres. */
+@Suppress("UNCHECKED_CAST")
+private inline fun <reified T> Any.read(key: String): T {
+    // Si tu uiState es una data class, reemplaza esto por acceso directo (uiState.key)
+    // Aquí se asume que es un Map-like o que tienes un método get(String).
+    return when (this) {
+        is Map<*, *> -> this[key] as T
+        else -> {
+            // Reflection básica para data class/POJO
+            val prop = this::class.members.first { it.name == key }
+            prop.call(this) as T
+        }
+    }
 }

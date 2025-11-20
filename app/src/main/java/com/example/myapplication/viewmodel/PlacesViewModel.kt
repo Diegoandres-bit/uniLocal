@@ -3,160 +3,192 @@ package com.example.myapplication.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.model.City
-import com.example.myapplication.model.Location
+import com.example.myapplication.data.FakeCloudDataSource
 import com.example.myapplication.model.Place
-import com.example.myapplication.model.PlaceType
 import com.example.myapplication.model.ReviewStatus
-import com.example.myapplication.model.Schedule
+import java.time.LocalDate
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.time.DayOfWeek
-import java.time.LocalTime
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class PlacesViewModel: ViewModel() {
+// ---- UI models para la screen "Mis lugares" ----
+data class UiAuthor(val username: String)
+enum class PlaceStatus { PUBLISHED, PENDING, REJECTED }
 
-    private val _places = MutableStateFlow(emptyList<Place>())
-    val places: StateFlow<List<Place>> = _places.asStateFlow()
+data class UiPlace(
+    val id: String,
+    val name: String,
+    val createdAt: LocalDate,
+    val comments: Int,
+    val author: UiAuthor,
+    val city: String,
+    val imageUrl: String?,
+    val status: PlaceStatus
+)
 
+data class MyPlacesUiState(
+    val isLoading: Boolean = false,
+    val query: String = "",
+    val filter: PlaceStatus? = null,
+    val items: List<UiPlace> = emptyList(),
+    val error: String? = null,
+    val pendingDeleteId: String? = null
+) {
+    val filtered: List<UiPlace>
+        get() = items.filter { p ->
+            val q = query.isBlank() || p.name.contains(query, ignoreCase = true)
+            val f = filter == null || p.status == filter
+            q && f
+        }
+}
 
+class PlacesViewModel : ViewModel() {
+
+    private val repository = FakeCloudDataSource
+
+    // ---------------- Fuente de verdad (dominio) ----------------
+    val places: StateFlow<List<Place>> = repository.places
+
+    // Para pantallas de moderador
     val pendingPlaces: StateFlow<List<Place>> =
-        _places
-            .map { list -> list.filter { it.status == ReviewStatus.PENDING } }
+        places.map { list -> list.filter { it.status == ReviewStatus.PENDING } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val approvedPlaces: StateFlow<List<Place>> =
-        _places
-            .map { list -> list.filter { it.status == ReviewStatus.APPROVED } }
+        places.map { list -> list.filter { it.status == ReviewStatus.APPROVED } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    // ---------------- Estado "Mis lugares" (UI) ----------------
+    private val _ui = MutableStateFlow(MyPlacesUiState(isLoading = true))
+    val ui: StateFlow<MyPlacesUiState> = _ui
+
+    // ---------------- Estado "Reseña rápida" ----------------
+    private val _selectedPlace = MutableStateFlow<Place?>(null)
+    val selectedPlace: StateFlow<Place?> = _selectedPlace.asStateFlow()
+
+    private val _isLoggedIn = MutableStateFlow(false)
+    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    private val _reviewRating = MutableStateFlow(0)          // 0..5
+    val reviewRating: StateFlow<Int> = _reviewRating.asStateFlow()
+
+    private val _reviewComment = MutableStateFlow("")
+    val reviewComment: StateFlow<String> = _reviewComment.asStateFlow()
+
+    private val _isSubmittingReview = MutableStateFlow(false)
+    val isSubmittingReview: StateFlow<Boolean> = _isSubmittingReview.asStateFlow()
+
     init {
-        loadPlaces()
+        refresh()
+        observePlaces()
     }
 
-    fun loadPlaces() {
-        _places.value = listOf(
-            Place(
-                id = "1",
-                title = "Restaurante El paisa",
-                description = "El mejor restaurante paisa",
-                address = "Cra 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf(
-                    "https://picsum.photos/600/400",
-                    "https://picsum.photos/300/200",
-                    "https://picsum.photos/301/200",
-                    "https://picsum.photos/302/200",
-                    "https://picsum.photos/303/200"
-                ),
-                phoneNumber = "3123123123",
-                type = PlaceType.RESTAURANT,
-                city = City.ARMENIA,
-                schedules = listOf(
-                    Schedule(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
-                    Schedule(DayOfWeek.THURSDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
-                    Schedule(DayOfWeek.FRIDAY, LocalTime.of(10, 0), LocalTime.of(20, 0)),
-                )
-            ),
-            Place(
-                id = "2",
-                title = "Bar test 1",
-                description = "Un bar test",
-                address = "Calle 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf("https://cdn0.uncomo.com/es/posts/6/8/4/como_gestionar_un_bar_22486_orig.jpg"),
-                phoneNumber = "3123123123",
-                type = PlaceType.BAR,
-                city = City.ARMENIA,
-                schedules = listOf(),
-                createdByUserId = "2"
-            ),
-            Place(
-                id = "3",
-                title = "Hotel de prueba",
-                description = "Un bar test",
-                address = "Calle 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf("https://cdn0.uncomo.com/es/posts/6/8/4/como_gestionar_un_bar_22486_orig.jpg"),
-                phoneNumber = "3123123123",
-                type = PlaceType.HOTEL,
-                city = City.PEREIRA,
-                schedules = listOf(),
-                createdByUserId = "2"
-            ),
-            Place(
-                id = "4",
-                title = "Shopping test 1",
-                description = "Un bar test",
-                address = "Calle 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf("https://cdn0.uncomo.com/es/posts/6/8/4/como_gestionar_un_bar_22486_orig.jpg"),
-                phoneNumber = "3123123123",
-                type = PlaceType.SHOPPING,
-                city = City.MEDELLIN,
-                schedules = listOf(),
-                createdByUserId = "2"
-            ),
-            Place(
-                id = "5",
-                title = "Shopping test 2",
-                description = "Un bar test",
-                address = "Calle 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf("https://cdn0.uncomo.com/es/posts/6/8/4/como_gestionar_un_bar_22486_orig.jpg"),
-                phoneNumber = "3123123123",
-                type = PlaceType.SHOPPING,
-                city = City.BOGOTA,
-                schedules = listOf(),
-                createdByUserId = "2"
-            ),
-            Place(
-                id = "6",
-                title = "Parque de prueba",
-                description = "Un bar test",
-                address = "Calle 12 # 12 - 12",
-                location = Location(1.23, 2.34),
-                images = listOf("https://cdn0.uncomo.com/es/posts/6/8/4/como_gestionar_un_bar_22486_orig.jpg"),
-                phoneNumber = "3123123123",
-                type = PlaceType.PARK,
-                city = City.BOGOTA,
-                schedules = listOf(),
-                createdByUserId = "2"
-            )
-        )
+    private fun observePlaces() {
+        viewModelScope.launch {
+            repository.places.collect { list ->
+                _ui.update { state -> state.copy(isLoading = false, items = list.map(::toUi)) }
+                val selectedId = _selectedPlace.value?.id
+                if (selectedId != null) {
+                    _selectedPlace.value = repository.findPlace(selectedId)
+                }
+            }
+        }
     }
 
-    fun create(place: Place) {
-        _places.value = _places.value + place
+    // ---------------- Intents Mis lugares ----------------
+    fun onSearch(value: String) = _ui.update { it.copy(query = value) }
+    fun onFilter(status: PlaceStatus?) = _ui.update { it.copy(filter = status) }
+    fun askDelete(id: String) = _ui.update { it.copy(pendingDeleteId = id) }
+    fun dismissDelete() = _ui.update { it.copy(pendingDeleteId = null) }
+
+    fun confirmDelete() {
+        val id = _ui.value.pendingDeleteId ?: return
+        delete(id)
+        _ui.update { it.copy(pendingDeleteId = null) }
     }
 
-    fun findById(id: String): Place? =
-        _places.value.find { it.id == id }
+    fun refresh() {
+        viewModelScope.launch {
+            _ui.update { it.copy(isLoading = true, error = null) }
+            delay(400)
+            _ui.update { state -> state.copy(isLoading = false, items = repository.places.value.map(::toUi)) }
+        }
+    }
 
-    fun findByType(type: PlaceType): List<Place> =
-        _places.value.filter { it.type == type }
-
-    fun findByName(name: String): List<Place> =
-        _places.value.filter { it.title.contains(other = name, ignoreCase = true) }
-
+    fun delete(id: String) {
+        repository.deletePlace(id)
+        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
+        if (_selectedPlace.value?.id == id) _selectedPlace.value = null
+    }
 
     fun approvePlace(id: String) {
-        _places.value = _places.value.map { p ->
-            if (p.id == id) {
-                Log.d("PlacesViewModel", "Lugar ${p.title} marcado como APROBADO")
-                p.copy(status = ReviewStatus.APPROVED)
-            } else p
-        }
+        repository.seedReviewApproval(id, approve = true)
+        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
     }
-
 
     fun rejectPlace(id: String) {
-        _places.value = _places.value.map { p ->
-            if (p.id == id) p.copy(status = ReviewStatus.REJECTED) else p
+        repository.seedReviewApproval(id, approve = false)
+        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
+    }
+
+    fun findById(id: String): Place? = repository.findPlace(id)
+
+    // ---------------- Intents Reseña rápida ----------------
+    fun selectPlace(id: String) { _selectedPlace.value = findById(id) }
+    fun clearSelection() { _selectedPlace.value = null }
+
+    fun setLoggedIn(value: Boolean) { _isLoggedIn.value = value }
+
+    fun setReviewRating(value: Int) { _reviewRating.value = value.coerceIn(0, 5) }
+    fun setReviewComment(value: String) { _reviewComment.value = value }
+
+    fun cancelReview() {
+        _reviewRating.value = 0
+        _reviewComment.value = ""
+        _isSubmittingReview.value = false
+    }
+
+    fun publishReview() {
+        val place = _selectedPlace.value ?: return
+        if (!_isLoggedIn.value) return
+        if (_reviewRating.value !in 1..5 || _reviewComment.value.isBlank()) return
+
+        viewModelScope.launch {
+            _isSubmittingReview.value = true
+            try {
+                // Simulación: reemplaza por tu repositorio real
+                delay(800)
+                Log.d(
+                    "PlacesViewModel",
+                    "Reseña publicada para '${place.title}': rating=${_reviewRating.value}, comment='${_reviewComment.value}'"
+                )
+                cancelReview()
+            } finally {
+                _isSubmittingReview.value = false
+            }
         }
     }
+
+    // --------- Mapping dominio -> UI ----------
+    private fun toUi(p: Place): UiPlace = UiPlace(
+        id = p.id,
+        name = p.title,
+        createdAt = LocalDate.now(),
+        comments = 0,
+        author = UiAuthor(username = p.createdByUserId ?: "usuario"),
+        city = p.city.name,
+        imageUrl = p.images.firstOrNull(),
+        status = when (p.status ?: ReviewStatus.PENDING) {
+            ReviewStatus.APPROVED -> PlaceStatus.PUBLISHED
+            ReviewStatus.PENDING  -> PlaceStatus.PENDING
+            ReviewStatus.REJECTED -> PlaceStatus.REJECTED
+        }
+    )
 }

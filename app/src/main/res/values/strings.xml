@@ -19,6 +19,11 @@
     <string name="reset_send_code">Enviar código</string>
     <string name="reset_have_code">Ya tengo un código</string>
     <string name="reset_info_note">Te enviaremos un código de 6 dígitos al método seleccionado.</string>
+    <string name="reset_email_subject">Código para restablecer tu contraseña</string>
+    <string name="reset_email_body">Hola, este es un correo automático para ayudarte a restablecer tu contraseña en uniLocal.</string>
+    <string name="reset_email_only_error">Ingresa un correo electrónico válido para continuar</string>
+    <string name="reset_email_client_error">No encontramos una aplicación de correo para completar la acción</string>
+    <string name="reset_code_label">Código temporal: %1$s</string>
 
     <!-- Content descriptions (accesibilidad) -->
     <string name="cd_back">Volver</string>

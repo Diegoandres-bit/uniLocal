@@ -22,6 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.R
 import com.example.myapplication.model.User
 import com.example.myapplication.ui.components.InputTextField
@@ -47,13 +50,16 @@ fun LoginScreen(
     onRegister: () -> Unit = {},
     onRecoverPassword: () -> Unit = {},
     onLogin: (User) -> Unit = {},
-    usersViewModel: UsersViewModel = UsersViewModel(),
+    usersViewModel: UsersViewModel = viewModel(),
 ) {
-    var isLoading by rememberSaveable { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isFormValid by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val uiState by usersViewModel.uiState.collectAsState()
+    val currentUser by usersViewModel.loggedInUser.collectAsState()
+
+    LaunchedEffect(currentUser?.id) {
+        currentUser?.let { onLogin(it) }
+    }
 
     Column(
 
@@ -138,29 +144,21 @@ fun LoginScreen(
                 )
 
 
-                 isFormValid = password.length >= 8
+                val isFormValid = password.length >= 8
 
 
                 Button(
                     onClick = {
-                        isLoading = true
-                        val user = usersViewModel.login(email, password)
-                        if (user != null) {
-                            errorMessage = null
-                            onLogin(user)
-                        } else {
-                            errorMessage = "Credenciales incorrectas"
-                        }
-                        isLoading = false
+                        usersViewModel.login(email, password)
                     },
                     enabled = isFormValid,
                     color = colorResource(R.color.green),
                     text = stringResource(R.string.btn_Inicio_Sesion),
                     contentColor = colorResource(R.color.white),
-                    isLoading = isLoading
+                    isLoading = uiState.isLoading
 
                 )
-                errorMessage?.let {
+                uiState.error?.let {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = it, color = colorResource(R.color.black))
                 }
@@ -192,5 +190,4 @@ fun LoginScreen(
 
     }
 }
-
 
