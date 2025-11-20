@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 sealed class RouteScreen {
 
     @Serializable
+    data object EditProfile : RouteScreen()
+
+    @Serializable
     data object Profile : RouteScreen()
 
     @Serializable
@@ -13,6 +16,9 @@ sealed class RouteScreen {
 
     @Serializable
     data object Places : RouteScreen()
+
+    @Serializable
+    data object MyPlaces : RouteScreen()
 
     @Serializable
     data object Login : RouteScreen()
@@ -29,4 +35,9 @@ sealed class RouteScreen {
     @Serializable
     data object Moderator : RouteScreen()
 
+    @Serializable
+    data object Review : RouteScreen()
+
+    @Serializable
+    data object PlaceDetails : RouteScreen()
 }

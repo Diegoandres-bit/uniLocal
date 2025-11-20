@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
     id("kotlin-parcelize")
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -67,6 +68,12 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.unit)
     implementation(libs.androidx.compose.runtime.saveable)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.16.4")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,4 +81,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("com.mapbox.maps:android-ndk27:11.16.4")
 }

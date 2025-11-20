@@ -27,38 +27,62 @@ import androidx.navigation.NavHostController
 import co.edu.eam.lugaresapp.ui.user.bottombar.BottomBarUser
 import coil.compose.AsyncImage
 import com.example.myapplication.R
+import com.example.myapplication.model.Place
 import com.example.myapplication.ui.components.Button
 import com.example.myapplication.ui.components.CompactSearchBar
 import com.example.myapplication.ui.components.SlipCard
 import com.example.myapplication.viewmodel.PlacesViewModel
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import com.mapbox.maps.extension.compose.annotation.generated.PointAnnotationGroup
+import com.mapbox.maps.plugin.annotation.generated.pointAnnotationOptions
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ViewModelConstructorInComposable")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HomeUser(navController: NavHostController) {
-    val placesViewModel = PlacesViewModel()
+fun HomeUser(navController: NavHostController, placesViewModel: PlacesViewModel) {
     var query by rememberSaveable { mutableStateOf("") }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val places by placesViewModel.places.collectAsState()
-    val filteredPlaces = remember(places, query) {
-            when {
-                query.equals("Restaurant", ignoreCase = true) -> {
-                    places.filter { it.type.name.equals("RESTAURANT", ignoreCase = true) }
-                }
-                query.equals("Shopping", ignoreCase = true) -> {
-                    places.filter { it.type.name.equals("SHOPPING", ignoreCase = true) }
-                }
-                query.equals("1-20km", ignoreCase = true) -> {
-                    places.filter { (it.distanceKm ?: 0.0) in 1.0..20.0 }
-                }
-                query.isNotBlank() -> {
-                    places.filter { it.title.contains(query, ignoreCase = true) }
-                }
-                else -> places
+    val filtered = remember(places, query) {
+        places.filter {
+            query.isBlank() || it.title.contains(query, ignoreCase = true)
+        }
+    }
+    val annotations = remember(filtered) {
+        filtered.map { place ->
+            pointAnnotationOptions {
+                geometry(Point.fromLngLat(place.location.longitude, place.location.latitude))
+                iconImage("marker-15")
+                textField(place.id)
             }
         }
+    }
+    var selectedPlace by remember { mutableStateOf<com.example.myapplication.model.Place?>(null) }
+
+    val viewportState = rememberMapViewportState {
+        setCameraOptions {
+            zoom(12.0)
+            center(Point.fromLngLat(-75.69321, 4.5140139))
+            pitch(0.0)
+            bearing(0.0)
+        }
+    }
+
+    LaunchedEffect(selectedPlace?.id) {
+        selectedPlace?.let { place ->
+            viewportState.setCameraOptions {
+                center(Point.fromLngLat(place.location.longitude, place.location.latitude))
+                zoom(14.0)
+            }
+        }
+    }
+
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -80,6 +104,21 @@ fun HomeUser(navController: NavHostController) {
             )
         },
     ) { innerPadding ->
+        if (selectedPlace != null) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    scope.launch {
+                        sheetState.hide()
+                        selectedPlace = null
+                    }
+                },
+                sheetState = sheetState
+            ) {
+                selectedPlace?.let { place ->
+                    PlaceBottomSheet(place = place)
+                }
+            }
+        }
         Column(
             modifier = Modifier
                 .background(Color.White)
@@ -156,18 +195,27 @@ fun HomeUser(navController: NavHostController) {
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
-                ) {
-                    AsyncImage(
-                        model = "https://motor.elpais.com/wp-content/uploads/2022/01/google-maps-22.jpg",
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-
+                Box {
+                    MapboxMap(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(280.dp),
+                        mapViewportState = viewportState,
+                    ) {
+                        PointAnnotationGroup(
+                            annotations = annotations,
+                            onClick = { annotation ->
+                                val clicked = filtered.firstOrNull { it.id == annotation.textField }
+                                if (clicked != null) {
+                                    scope.launch {
+                                        selectedPlace = clicked
+                                        sheetState.show()
+                                    }
+                                }
+                                true
+                            }
+                        )
+                    }
                     Surface(
                         color=Color.White,
                         tonalElevation = 8.dp,
@@ -175,7 +223,8 @@ fun HomeUser(navController: NavHostController) {
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .height(280.dp)
+                            .height(250.dp)
+                            .padding(bottom = 0.dp)
                     ) {
                         Column(
                             modifier = Modifier
@@ -183,39 +232,64 @@ fun HomeUser(navController: NavHostController) {
                                 .padding(16.dp)
                                 .background(Color.White)
                         ) {
-                            Text(
-                                text = stringResource(R.string.Lugares_cerca),
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            Divider(
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                color = Color.LightGray,
-                                thickness = 1.dp
-                            )
-
-                            LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                items(filteredPlaces) { place ->
-                                    SlipCard(
-                                        name = place.title,
-                                        type = place.type,
-                                        imageUrl = place.images.firstOrNull() ?: "",
-                                        puntuation = place.puntuation,
-                                        distance = place.distanceKm ?: 0.0,
-                                        onClick = {  }
-                                    )
-                                }
+                            Text(stringResource(R.string.Lugares_cerca))
+                        }
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(top = 8.dp)
+                        ) {
+                            items(filtered, key = { it.id }) { place ->
+                                slipCard(
+                                    name = place.title,
+                                    description = place.description,
+                                    imageUrl = place.images.firstOrNull() ?: "",
+                                    onClick = {
+                                        scope.launch {
+                                            selectedPlace = place
+                                            sheetState.show()
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
                 }
-
-                    }
             }
         }
     }
+}
 
-
+@Composable
+private fun PlaceBottomSheet(place: Place) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(place.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        AsyncImage(
+            model = place.images.firstOrNull(),
+            contentDescription = place.title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop
+        )
+        Text(place.description, style = MaterialTheme.typography.bodyMedium)
+        Text("${place.address} • ${place.city.displayName}")
+        androidx.compose.material3.Button(
+            onClick = { /* navegar a detalles */ },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(R.color.green),
+                contentColor = Color.White
+            )
+        ) {
+            Text("Ver detalles")
+        }
+    }
+}

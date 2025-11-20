@@ -1,69 +1,104 @@
 package com.example.myapplication.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.myapplication.model.City
-import com.example.myapplication.model.Role
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.FakeCloudDataSource
+import com.example.myapplication.data.remote.FirebaseAuthRepository
 import com.example.myapplication.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class UsersViewModel: ViewModel(){
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val infoMessage: String? = null,
+    val recoveryCode: String? = null,
+    val currentUser: User? = null
+)
 
-    private val _users = MutableStateFlow(emptyList<User>())
-    val users: StateFlow<List<User>> = _users.asStateFlow()
+class UsersViewModel(
+    private val authRepository: FirebaseAuthRepository = FirebaseAuthRepository()
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    private val _loggedInUser = MutableStateFlow<User?>(null)
+    val loggedInUser: StateFlow<User?> = _loggedInUser.asStateFlow()
 
     init {
-        loadUsers()
-    }
-
-    fun loadUsers(){
-
-        _users.value = listOf(
-            User(
-                id = "1",
-                name = "Admin",
-                username = "admin",
-                role = Role.ADMIN,
-                city = City.ARMENIA,
-                email = "admin@email.com",
-                password = "12345678"
-            ),
-            User(
-                id = "2",
-                name = "Carlos",
-                username = "carlosf",
-                role = Role.USER,
-                city = City.ARMENIA,
-                email = "carlos@email.com",
-                password = "123456"
-            )
-        )
-
-    }
-
-    fun create(user: User){
-        _users.value = _users.value + user
-    }
-
-    fun findById(id: String): User?{
-        return _users.value.find { it.id == id }
-    }
-
-    fun findByEmail(email: String): User?{
-        return _users.value.find { it.email == email }
-    }
-
-    fun login(identifier: String, password: String): User? {
-        return _users.value.find {
-            (it.email == identifier || it.username == identifier) && it.password == password
+        viewModelScope.launch {
+            runCatching { authRepository.getCurrentUser() }
+                .onSuccess { user ->
+                    user?.let {
+                        FakeCloudDataSource.overrideCurrentUser(it)
+                        _loggedInUser.value = it
+                        _uiState.update { state -> state.copy(currentUser = it) }
+                    }
+                }
         }
     }
 
-    fun update(user: User) {
-        _users.value = _users.value.map { if (it.id == user.id) user else it }
+    fun login(identifier: String, password: String) {
+        viewModelScope.launch {
+            val trimmed = identifier.trim()
+            _uiState.update { it.copy(isLoading = true, error = null, infoMessage = null) }
+
+            var firebaseError: Throwable? = null
+            val firebaseUser = runCatching { authRepository.login(trimmed, password) }
+                .onFailure { firebaseError = it }
+                .getOrNull()
+
+            if (firebaseUser != null) {
+                handleSuccessfulLogin(firebaseUser)
+                return@launch
+            }
+
+            FakeCloudDataSource.login(trimmed, password)
+                .onSuccess { user -> handleSuccessfulLogin(user) }
+                .onFailure { e ->
+                    val displayError = firebaseError ?: e
+                    _uiState.update { it.copy(isLoading = false, error = displayError.message ?: "Error") }
+                }
+        }
     }
 
+    fun requestPasswordReset(identifier: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null, infoMessage = null, recoveryCode = null) }
+            runCatching { authRepository.requestPasswordReset(identifier.trim()) }
+                .onSuccess { (email, code) ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            infoMessage = "Código enviado a $email",
+                            recoveryCode = code
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, error = e.message ?: "Error al enviar el código") }
+                }
+        }
+    }
 
+    fun logout() {
+        authRepository.logout()
+        FakeCloudDataSource.overrideCurrentUser(null)
+        _loggedInUser.value = null
+        _uiState.update { it.copy(currentUser = null) }
+    }
 
+    fun consumeMessage() {
+        _uiState.update { it.copy(infoMessage = null, error = null) }
+    }
+
+    private fun handleSuccessfulLogin(user: User) {
+        FakeCloudDataSource.overrideCurrentUser(user)
+        _loggedInUser.value = user
+        _uiState.update { it.copy(isLoading = false, currentUser = user, error = null) }
+    }
 }

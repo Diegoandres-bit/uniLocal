@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.myapplication.R
+import com.example.myapplication.model.PlaceType
 import com.example.myapplication.ui.components.Button
 import com.example.myapplication.ui.components.InputTextField
 import com.example.myapplication.viewmodel.CreatePlaceIntents
@@ -52,6 +53,7 @@ fun CreatePlaceScreen(
                 onNext = intents.onNext,
                 nextEnabled = ui.canGoNext,
                 isSavingDraft = ui.isSavingDraft,
+                isPublishing = ui.isPublishing,
                 brandGreen = brandGreen,
                 white = white,
                 grey = grey
@@ -139,7 +141,7 @@ fun CreatePlaceScreen(
                 // Fotos (1–5)
                 Labeled("Fotos * (1–5)") {
                     PhotosRow(
-                        photos = ui.photos,
+                        photos = ui.localPhotos,
                         onAddClick = intents.onAddPhotoClick,
                         onRemove = intents.onRemovePhoto
                     )
@@ -245,8 +247,8 @@ private fun HelperText(text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryDropdown(
-    selected: String?,
-    options: List<String>,
+    selected: PlaceType?,
+    options: List<PlaceType>,
     placeholder: String,
     onSelected: (String) -> Unit
 ) {
@@ -258,7 +260,7 @@ private fun CategoryDropdown(
     ) {
         // Campo visual
         OutlinedTextField(
-            value = selected ?: "",
+            value = selected?.displayName ?: "",
             onValueChange = {},
             readOnly = true,
             placeholder = { Text(placeholder) },
@@ -274,9 +276,9 @@ private fun CategoryDropdown(
         ) {
             options.forEach { opt ->
                 DropdownMenuItem(
-                    text = { Text(opt) },
+                    text = { Text(opt.displayName) },
                     onClick = {
-                        onSelected(opt)
+                        onSelected(opt.displayName)
                         expanded = false
                     }
                 )
@@ -387,6 +389,7 @@ private fun BottomActionsBar(
     onNext: () -> Unit,
     nextEnabled: Boolean,
     isSavingDraft: Boolean,
+    isPublishing: Boolean,
     brandGreen: Color,
     white: Color,
     grey: Color
@@ -424,7 +427,7 @@ private fun BottomActionsBar(
                 color = brandGreen,
                 contentColor = white,
                 enabled = nextEnabled,
-                isLoading = false,
+                isLoading = isPublishing,
                 modifier = Modifier.weight(1f)
             )
         }

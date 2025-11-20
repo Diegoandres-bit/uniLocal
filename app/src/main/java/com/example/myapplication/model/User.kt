@@ -10,5 +10,5 @@ data class User(
     val role: Role,
     val city: City,
     val email: String,
-    val password: String
+    val password: String = ""
 ) : Parcelable

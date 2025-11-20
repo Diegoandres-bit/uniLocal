@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,17 +22,21 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.components.Button
 import com.example.myapplication.ui.components.InputTextField
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.myapplication.viewmodel.UsersViewModel
 
 @Composable
 fun ResetPasswordScreenForm(
     onBack: () -> Unit = {},
     onSendCode: (String) -> Unit = {},
-    onAlreadyHaveCode: () -> Unit = {}
+    onAlreadyHaveCode: () -> Unit = {},
+    usersViewModel: UsersViewModel = viewModel()
 ) {
     var contact by remember { mutableStateOf("") } // email o phone
     val isInvalidContact = contact.isBlank() || !isValidEmailOrPhone(contact)
-    var isLoading by rememberSaveable { mutableStateOf(false) }
     var showInformativeNote by rememberSaveable { mutableStateOf(false) }
+    val uiState by usersViewModel.uiState.collectAsState()
+    val recoveryCode = uiState.recoveryCode
 
     Column(
         modifier = Modifier
@@ -105,17 +110,17 @@ fun ResetPasswordScreenForm(
                     // Enviar código
                     Button(
                         onClick = {
-                            isLoading = true
-                            onSendCode(contact.trim())
+                            val sanitized = contact.trim()
+                            usersViewModel.requestPasswordReset(sanitized)
                             showInformativeNote = true
-                            isLoading = false
+                            onSendCode(sanitized)
                         },
                         enabled = !isInvalidContact,
                         color = colorResource(R.color.green),
                         icon = Icons.Outlined.Send,
                         text = stringResource(R.string.reset_send_code),
                         contentColor = colorResource(R.color.white),
-                        isLoading = isLoading,
+                        isLoading = uiState.isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
@@ -136,7 +141,8 @@ fun ResetPasswordScreenForm(
                     )
 
                     // Nota informativa (dinámica)
-                    if (showInformativeNote) {
+                    val infoLabel = uiState.infoMessage
+                    if (showInformativeNote && (infoLabel != null || uiState.error != null)) {
                         Spacer(Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(16.dp),
@@ -154,12 +160,25 @@ fun ResetPasswordScreenForm(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    text = stringResource(R.string.reset_info_note),
+                                    text = infoLabel ?: uiState.error ?: stringResource(R.string.reset_info_note),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = colorResource(R.color.dark_grey)
                                 )
                             }
                         }
+                    }
+                    recoveryCode?.let { code ->
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.reset_code_label, code),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colorResource(R.color.green)
+                        )
+                    }
+                    uiState.error?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(text = it, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -173,6 +192,3 @@ private fun isValidEmailOrPhone(input: String): Boolean {
     val isPhone = Patterns.PHONE.matcher(trimmed).matches()
     return isEmail || isPhone
 }
-
-
-
