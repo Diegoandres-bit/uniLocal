@@ -3,7 +3,7 @@ package com.example.myapplication.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.FakeCloudDataSource
+import com.example.myapplication.data.remote.FirestorePlacesRepository
 import com.example.myapplication.model.Place
 import com.example.myapplication.model.ReviewStatus
 import java.time.LocalDate
@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -51,10 +54,11 @@ data class MyPlacesUiState(
 
 class PlacesViewModel : ViewModel() {
 
-    private val repository = FakeCloudDataSource
+    private val repository = FirestorePlacesRepository()
 
     // ---------------- Fuente de verdad (dominio) ----------------
-    val places: StateFlow<List<Place>> = repository.places
+    private val _places = MutableStateFlow<List<Place>>(emptyList())
+    val places: StateFlow<List<Place>> = _places.asStateFlow()
 
     // Para pantallas de moderador
     val pendingPlaces: StateFlow<List<Place>> =
@@ -86,19 +90,24 @@ class PlacesViewModel : ViewModel() {
     val isSubmittingReview: StateFlow<Boolean> = _isSubmittingReview.asStateFlow()
 
     init {
-        refresh()
         observePlaces()
     }
 
     private fun observePlaces() {
         viewModelScope.launch {
-            repository.places.collect { list ->
-                _ui.update { state -> state.copy(isLoading = false, items = list.map(::toUi)) }
-                val selectedId = _selectedPlace.value?.id
-                if (selectedId != null) {
-                    _selectedPlace.value = repository.findPlace(selectedId)
+            repository.places
+                .onStart { _ui.update { it.copy(isLoading = true, error = null) } }
+                .catch { e ->
+                    _ui.update { it.copy(isLoading = false, error = e.message ?: "Error cargando lugares") }
                 }
-            }
+                .collect { list ->
+                    _places.value = list
+                    _ui.update { state -> state.copy(isLoading = false, error = null, items = list.map(::toUi)) }
+                    val selectedId = _selectedPlace.value?.id
+                    if (selectedId != null) {
+                        _selectedPlace.value = list.firstOrNull { it.id == selectedId }
+                    }
+                }
         }
     }
 
@@ -117,28 +126,46 @@ class PlacesViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _ui.update { it.copy(isLoading = true, error = null) }
-            delay(400)
-            _ui.update { state -> state.copy(isLoading = false, items = repository.places.value.map(::toUi)) }
+            runCatching { repository.places.first() }
+                .onSuccess { list ->
+                    _places.value = list
+                    _ui.update { state -> state.copy(isLoading = false, items = list.map(::toUi)) }
+                }
+                .onFailure { e ->
+                    _ui.update { it.copy(isLoading = false, error = e.message ?: "No pudimos actualizar") }
+                }
         }
     }
 
     fun delete(id: String) {
-        repository.deletePlace(id)
-        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
-        if (_selectedPlace.value?.id == id) _selectedPlace.value = null
+        viewModelScope.launch {
+            repository.deletePlace(id)
+                .onFailure { e ->
+                    _ui.update { it.copy(error = e.message ?: "Error eliminando el lugar") }
+                }
+            if (_selectedPlace.value?.id == id) _selectedPlace.value = null
+        }
     }
 
     fun approvePlace(id: String) {
-        repository.seedReviewApproval(id, approve = true)
-        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
+        viewModelScope.launch {
+            repository.updateStatus(id, ReviewStatus.APPROVED)
+                .onFailure { e ->
+                    _ui.update { it.copy(error = e.message ?: "No se pudo aprobar el lugar") }
+                }
+        }
     }
 
     fun rejectPlace(id: String) {
-        repository.seedReviewApproval(id, approve = false)
-        _ui.update { it.copy(items = repository.places.value.map(::toUi)) }
+        viewModelScope.launch {
+            repository.updateStatus(id, ReviewStatus.REJECTED)
+                .onFailure { e ->
+                    _ui.update { it.copy(error = e.message ?: "No se pudo rechazar el lugar") }
+                }
+        }
     }
 
-    fun findById(id: String): Place? = repository.findPlace(id)
+    fun findById(id: String): Place? = _places.value.firstOrNull { it.id == id }
 
     // ---------------- Intents Reseña rápida ----------------
     fun selectPlace(id: String) { _selectedPlace.value = findById(id) }

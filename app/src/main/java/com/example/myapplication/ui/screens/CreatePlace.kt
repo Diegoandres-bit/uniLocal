@@ -2,6 +2,9 @@ package com.example.myapplication.ui.screens
 
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -37,6 +40,13 @@ fun CreatePlaceScreen(
     val brandGreen = colorResource(R.color.green)
     val white = colorResource(R.color.white)
     val grey = colorResource(R.color.grey)
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            intents.onPhotosSelected(uris)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -142,7 +152,13 @@ fun CreatePlaceScreen(
                 Labeled("Fotos * (1–5)") {
                     PhotosRow(
                         photos = ui.localPhotos,
-                        onAddClick = intents.onAddPhotoClick,
+                        onAddClick = {
+                            if (ui.localPhotos.size < 5) {
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
+                        },
                         onRemove = intents.onRemovePhoto
                     )
                 }
